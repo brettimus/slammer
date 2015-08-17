@@ -1,0 +1,14 @@
+{
+  "name": "slammer",
+  "version": "0.0.0",
+  "description": "A vanillaJS slider that uses Hammer.js for touch events.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Violet Peña",
+  "license": "ISC",
+  "dependencies": {
+    "hammerjs": "^2.0.4"
+  }
+}
