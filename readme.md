@@ -26,3 +26,7 @@ Someday, these will be configurable defaults, but for now they're set in stone:
 - One slide is visible at once
 - There is a nav
 - Slider is not able to handle text, etc. within each slide
+
+## Thoughts
+
+I might have this work by generating a completely new DOM based on the input. Then I could keep track of curr, prev, and next more dynamically and sizing the container would also be simpler.
