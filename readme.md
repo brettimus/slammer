@@ -18,3 +18,11 @@ If you want to dev with it:
 - in top level: `http-server`
 - ???
 - profit
+
+##"Options"
+Someday, these will be configurable defaults, but for now they're set in stone:
+
+- Slideshow expands to fill 100% of its container's width
+- One slide is visible at once
+- There is a nav
+- Slider is not able to handle text, etc. within each slide
