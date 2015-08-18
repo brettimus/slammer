@@ -20,6 +20,9 @@ var Slammer = (function () {
 
     this.wrapper = wrapperElt;
     this.slides = this.wrapper.children;
+    this.curr = 0;
+    this.prev = this.slides.length - 1;
+    this.next = 1;
 
     this.slam();
   }
@@ -39,8 +42,34 @@ var Slammer = (function () {
     key: "slam",
     value: function slam() {
 
-      // set first slide active.
-      this.setActiveItem(this.slides[0]);
+      // create new, three-slide slammer out of curr, prev, and next
+      var wrapper = document.createElement('div');
+      var prev = document.createElement('div');
+      var curr = document.createElement('div');
+      var next = document.createElement('div');
+
+      var slides = [prev, curr, next];
+      var origSlideCopies = [];
+
+      for (var i = 0; i < this.slides.length; i++) {
+        origSlideCopies.push(this.slides[i].innerHTML);
+      }
+
+      for (var i = 0; i < slides.length; i++) {
+        slides[i].classList.add('slam-item');
+        wrapper.appendChild(slides[i]);
+        slides[i].innerHTML += origSlideCopies[i];
+      }
+
+      wrapper.classList.add('slam-items');
+
+      var realWrapper = this.wrapper.parentNode;
+
+      realWrapper.removeChild(this.wrapper);
+
+      realWrapper.appendChild(wrapper);
+
+      console.log(origSlideCopies);
 
       return;
     }

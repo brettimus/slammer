@@ -14,6 +14,9 @@ class Slammer {
   constructor(wrapperElt) {
     this.wrapper = wrapperElt;
     this.slides = this.wrapper.children;
+    this.curr = 0;
+    this.prev = this.slides.length - 1;
+    this.next = 1;
 
     this.slam();
   }
@@ -29,8 +32,34 @@ class Slammer {
   */
   slam() {
 
-    // set first slide active.
-    this.setActiveItem(this.slides[0]);
+    // create new, three-slide slammer out of curr, prev, and next
+    let wrapper = document.createElement('div');
+    let prev = document.createElement('div');
+    let curr = document.createElement('div');
+    let next = document.createElement('div');
+
+    let slides = [prev, curr, next];
+    let origSlideCopies = [];
+
+    for (let i = 0; i < this.slides.length; i++) {
+      origSlideCopies.push(this.slides[i].innerHTML);
+    }
+
+    for (let i = 0; i < slides.length; i++) {
+      slides[i].classList.add('slam-item');
+      wrapper.appendChild(slides[i]);
+      slides[i].innerHTML += origSlideCopies[i];
+    }
+
+    wrapper.classList.add('slam-items');
+
+    const realWrapper = this.wrapper.parentNode;
+
+    realWrapper.removeChild(this.wrapper);
+
+    realWrapper.appendChild(wrapper);
+
+    console.log(origSlideCopies);
 
     return;
   }
