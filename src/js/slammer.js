@@ -12,6 +12,7 @@ STEPS:
 */
 
 const activeSlideClass = "slam-item-active";
+const slidePositions = ["prev", "center", "next"];
 
 class Slammer {
   constructor(wrapperElt) {
@@ -21,21 +22,35 @@ class Slammer {
     this.prev = this.slides.length - 1;
     this.next = 1;
     this.newSlammer = null;
+    this.position = null;
 
     this.slam();
   }
 
-  setActiveItem(item) {
-    item.classList.add(activeSlideClass);
+  retreat() {
+    let newIndex = slidePositions.indexOf(this.position) - 1;
+    let newPos = slidePositions[newIndex >= 0 ? newIndex : slidePositions.length + newIndex];
+    this.transformTo(newPos, 0);
+  }
+
+  advance() {
+    let newIndex = slidePositions.indexOf(this.position) + 1;
+    let newPos = slidePositions[newIndex < slidePositions.length ? newIndex : slidePositions.length - newIndex];
+    this.transformTo(newPos, 0);
   }
 
   transformTo(position, time) {
     let transformPos = 0;
     if (position === "center") {
       transformPos = this.newSlammer.offsetWidth/-3;
+      this.position = "center";
     }
     else if (position === "next") {
       transformPos = this.newSlammer.offsetWidth*2/-3;
+      this.position = "next";
+    }
+    else {
+      this.position = "prev";
     }
 
     this.newSlammer.style.transform = "translateX(" + transformPos + "px)";
@@ -46,10 +61,10 @@ class Slammer {
     let hammer = new Hammer(this.newSlammer);
     hammer.on('swipe', (e) => {
       if (e.direction === 2) {
-        this.transformTo("prev", 0);
+        this.advance();
       }
       else if (e.direction === 4) {
-        this.transformTo("next", 0);
+        this.retreat();
       }
     });
   }

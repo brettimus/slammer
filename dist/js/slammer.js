@@ -2479,6 +2479,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         */
 
         var activeSlideClass = "slam-item-active";
+        var slidePositions = ["prev", "center", "next"];
 
         var Slammer = (function () {
             function Slammer(wrapperElt) {
@@ -2490,6 +2491,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 this.prev = this.slides.length - 1;
                 this.next = 1;
                 this.newSlammer = null;
+                this.position = null;
 
                 this.slam();
             }
@@ -2497,9 +2499,18 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             // Create Slammers out of all elts with this class.
 
             _createClass(Slammer, [{
-                key: "setActiveItem",
-                value: function setActiveItem(item) {
-                    item.classList.add(activeSlideClass);
+                key: "retreat",
+                value: function retreat() {
+                    var newIndex = slidePositions.indexOf(this.position) - 1;
+                    var newPos = slidePositions[newIndex >= 0 ? newIndex : slidePositions.length + newIndex];
+                    this.transformTo(newPos, 0);
+                }
+            }, {
+                key: "advance",
+                value: function advance() {
+                    var newIndex = slidePositions.indexOf(this.position) + 1;
+                    var newPos = slidePositions[newIndex < slidePositions.length ? newIndex : slidePositions.length - newIndex];
+                    this.transformTo(newPos, 0);
                 }
             }, {
                 key: "transformTo",
@@ -2507,8 +2518,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var transformPos = 0;
                     if (position === "center") {
                         transformPos = this.newSlammer.offsetWidth / -3;
+                        this.position = "center";
                     } else if (position === "next") {
                         transformPos = this.newSlammer.offsetWidth * 2 / -3;
+                        this.position = "next";
+                    } else {
+                        this.position = "prev";
                     }
 
                     this.newSlammer.style.transform = "translateX(" + transformPos + "px)";
@@ -2521,9 +2536,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var hammer = new Hammer(this.newSlammer);
                     hammer.on('swipe', function (e) {
                         if (e.direction === 2) {
-                            _this.transformTo("prev", 0);
+                            _this.advance();
                         } else if (e.direction === 4) {
-                            _this.transformTo("next", 0);
+                            _this.retreat();
                         }
                     });
                 }
