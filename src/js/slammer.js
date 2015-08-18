@@ -1,5 +1,8 @@
 "use strict";
 
+const Hammer = require('hammerjs');
+
+
 /*
 STEPS:
 1. set first image active
@@ -39,6 +42,18 @@ class Slammer {
 
   }
 
+  acceptHammers() {
+    let hammer = new Hammer(this.newSlammer);
+    hammer.on('swipe', (e) => {
+      if (e.direction === 2) {
+        this.transformTo("prev", 0);
+      }
+      else if (e.direction === 4) {
+        this.transformTo("next", 0);
+      }
+    });
+  }
+
 
   /*
   Initializes a new slammer.
@@ -75,7 +90,7 @@ class Slammer {
     this.newSlammer.classList.add('slam-items');
 
     this.transformTo("center", 0);
-
+    this.acceptHammers();
 
     return;
   }

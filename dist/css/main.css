@@ -42,9 +42,13 @@ main {
   height: 100%;
   overflow: hidden;
   text-align: center;
+  -webkit-user-drag: none;
+  user-drag: none;
 }
-/* line 36, ../../src/sass/main.sass */
+/* line 38, ../../src/sass/main.sass */
 .slam-item > img {
   width: 100%;
   height: auto;
+  -webkit-user-drag: none;
+  user-drag: none;
 }

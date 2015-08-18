@@ -9,18 +9,28 @@ require('load-grunt-tasks')(grunt);
 	    	files: ['./src/sass/*.sass'],
 	    	tasks: ['compass']
 	    },
+      browserify: {
+        files: ['./src/js/*.js'],
+        tasks: ['browserify']
+      },
       babel: {
         files: ['./src/js/*.js'],
         tasks: ['babel']
       }
 		},
+    browserify: {
+      client: {
+        src: ['./src/js/slammer.js'],
+        dest: './src/js/comp.js'
+      }
+    },
     babel: {
       options: {
         sourceMap: true
       },
       dist: {
         files: {
-          'dist/js/slammer.js': 'src/js/slammer.js'
+          'dist/js/slammer.js': 'src/js/comp.js'
         }
       }
     },
@@ -37,6 +47,7 @@ require('load-grunt-tasks')(grunt);
 
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-compass');
+  grunt.loadNpmTasks('grunt-browserify');
 
   grunt.registerTask('default', ['watch']);
 
