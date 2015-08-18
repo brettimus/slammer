@@ -17,12 +17,26 @@ class Slammer {
     this.curr = 0;
     this.prev = this.slides.length - 1;
     this.next = 1;
+    this.newSlammer = null;
 
     this.slam();
   }
 
   setActiveItem(item) {
     item.classList.add(activeSlideClass);
+  }
+
+  transformTo(position, time) {
+    let transformPos = 0;
+    if (position === "center") {
+      transformPos = this.newSlammer.offsetWidth/-3;
+    }
+    else if (position === "next") {
+      transformPos = this.newSlammer.offsetWidth*2/-3;
+    }
+
+    this.newSlammer.style.transform = "translateX(" + transformPos + "px)";
+
   }
 
 
@@ -33,7 +47,7 @@ class Slammer {
   slam() {
 
     // create new, three-slide slammer out of curr, prev, and next
-    let wrapper = document.createElement('div');
+    this.newSlammer = document.createElement('div');
     let prev = document.createElement('div');
     let curr = document.createElement('div');
     let next = document.createElement('div');
@@ -47,19 +61,21 @@ class Slammer {
 
     for (let i = 0; i < slides.length; i++) {
       slides[i].classList.add('slam-item');
-      wrapper.appendChild(slides[i]);
+      this.newSlammer.appendChild(slides[i]);
       slides[i].innerHTML += origSlideCopies[i - 1 >= 0 ? i - 1 : origSlideCopies.length - 1];
     }
 
-    wrapper.classList.add('slam-items');
 
     const realWrapper = this.wrapper.parentNode;
 
     realWrapper.removeChild(this.wrapper);
 
-    realWrapper.appendChild(wrapper);
+    realWrapper.appendChild(this.newSlammer);
 
-    console.log(origSlideCopies);
+    this.newSlammer.classList.add('slam-items');
+
+    this.transformTo("center", 0);
+
 
     return;
   }

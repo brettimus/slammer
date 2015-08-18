@@ -23,6 +23,7 @@ var Slammer = (function () {
     this.curr = 0;
     this.prev = this.slides.length - 1;
     this.next = 1;
+    this.newSlammer = null;
 
     this.slam();
   }
@@ -34,6 +35,18 @@ var Slammer = (function () {
     value: function setActiveItem(item) {
       item.classList.add(activeSlideClass);
     }
+  }, {
+    key: "transformTo",
+    value: function transformTo(position, time) {
+      var transformPos = 0;
+      if (position === "center") {
+        transformPos = this.newSlammer.offsetWidth / -3;
+      } else if (position === "next") {
+        transformPos = this.newSlammer.offsetWidth * 2 / -3;
+      }
+
+      this.newSlammer.style.transform = "translateX(" + transformPos + "px)";
+    }
 
     /*
     Initializes a new slammer.
@@ -43,7 +56,7 @@ var Slammer = (function () {
     value: function slam() {
 
       // create new, three-slide slammer out of curr, prev, and next
-      var wrapper = document.createElement('div');
+      this.newSlammer = document.createElement('div');
       var prev = document.createElement('div');
       var curr = document.createElement('div');
       var next = document.createElement('div');
@@ -57,19 +70,19 @@ var Slammer = (function () {
 
       for (var i = 0; i < slides.length; i++) {
         slides[i].classList.add('slam-item');
-        wrapper.appendChild(slides[i]);
+        this.newSlammer.appendChild(slides[i]);
         slides[i].innerHTML += origSlideCopies[i - 1 >= 0 ? i - 1 : origSlideCopies.length - 1];
       }
-
-      wrapper.classList.add('slam-items');
 
       var realWrapper = this.wrapper.parentNode;
 
       realWrapper.removeChild(this.wrapper);
 
-      realWrapper.appendChild(wrapper);
+      realWrapper.appendChild(this.newSlammer);
 
-      console.log(origSlideCopies);
+      this.newSlammer.classList.add('slam-items');
+
+      this.transformTo("center", 0);
 
       return;
     }
