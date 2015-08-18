@@ -58,7 +58,7 @@ var Slammer = (function () {
       for (var i = 0; i < slides.length; i++) {
         slides[i].classList.add('slam-item');
         wrapper.appendChild(slides[i]);
-        slides[i].innerHTML += origSlideCopies[i];
+        slides[i].innerHTML += origSlideCopies[i - 1 >= 0 ? i - 1 : origSlideCopies.length - 1];
       }
 
       wrapper.classList.add('slam-items');
