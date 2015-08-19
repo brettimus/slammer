@@ -2501,32 +2501,55 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             _createClass(Slammer, [{
                 key: "retreat",
                 value: function retreat() {
-                    var newIndex = slidePositions.indexOf(this.position) - 1;
-                    var newPos = slidePositions[newIndex >= 0 ? newIndex : slidePositions.length + newIndex];
-                    this.transformTo(newPos, 0);
+                    // let newIndex = slidePositions.indexOf(this.position) + 1;
+                    // let newPos = slidePositions[newIndex < slidePositions.length ? newIndex : slidePositions.length - newIndex];
+                    // let newIndex = this.curr - 1 < -1 ? this.slides.length - 1 : this.curr - 1;
+
+                    var newIndex = this.curr - 1;
+
+                    this.transformTo(this.curr, newIndex, 0);
                 }
             }, {
                 key: "advance",
                 value: function advance() {
-                    var newIndex = slidePositions.indexOf(this.position) + 1;
-                    var newPos = slidePositions[newIndex < slidePositions.length ? newIndex : slidePositions.length - newIndex];
-                    this.transformTo(newPos, 0);
+                    // console.log(this.curr);
+                    // let newIndex = slidePositions.indexOf(this.position) + 1;
+                    // let newPos = slidePositions[newIndex < slidePositions.length ? newIndex : slidePositions.length - newIndex];
+                    var newIndex = this.curr + 1 >= this.slides.length ? 0 : this.curr + 1;
+
+                    // console.log(newIndex);
+
+                    this.transformTo(this.curr, newIndex, 0);
                 }
             }, {
                 key: "transformTo",
-                value: function transformTo(position, time) {
-                    var transformPos = 0;
-                    if (position === "center") {
-                        transformPos = this.newSlammer.offsetWidth / -3;
-                        this.position = "center";
-                    } else if (position === "next") {
-                        transformPos = this.newSlammer.offsetWidth * 2 / -3;
-                        this.position = "next";
+                value: function transformTo(currIndex, nextIndex, time) {
+                    var currTransformPos = this.newSlammer.style.transform;
+                    var px = parseFloat(currTransformPos.split('(')[1].split('px')[0]);
+                    var newTransformPos = 0;
+
+                    if (nextIndex > currIndex || currIndex === this.slides.length - 1 && nextIndex === -1) {
+                        newTransformPos = px + this.newSlammer.offsetWidth / -3;
                     } else {
-                        this.position = "prev";
+                        newTransformPos = px + this.newSlammer.offsetWidth / 3;
                     }
 
-                    this.newSlammer.style.transform = "translateX(" + transformPos + "px)";
+                    this.newSlammer.style.transform = "translateX(" + newTransformPos + "px)";
+
+                    // let transformPos = 0;
+                    // if (position === "center") {
+                    //   transformPos = this.newSlammer.offsetWidth/-3;
+                    //   this.position = "center";
+                    // }
+                    // else if (position === "next") {
+                    //   transformPos = this.newSlammer.offsetWidth*2/-3;
+                    //   this.position = "next";
+                    // }
+                    // else {
+                    //   this.position = "prev";
+                    // }
+                    //
+                    // this.newSlammer.style.transform = "translateX(" + transformPos + "px)";
                 }
             }, {
                 key: "acceptHammers",
@@ -2577,7 +2600,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     this.newSlammer.classList.add('slam-items');
 
-                    this.transformTo("center", 0);
+                    this.newSlammer.style.transform = "translateX(0px)";
+
+                    this.transformTo(-1, 0, 0);
                     this.acceptHammers();
 
                     return;

@@ -28,32 +28,56 @@ class Slammer {
   }
 
   retreat() {
-    let newIndex = slidePositions.indexOf(this.position) - 1;
-    let newPos = slidePositions[newIndex >= 0 ? newIndex : slidePositions.length + newIndex];
-    this.transformTo(newPos, 0);
+    // let newIndex = slidePositions.indexOf(this.position) + 1;
+    // let newPos = slidePositions[newIndex < slidePositions.length ? newIndex : slidePositions.length - newIndex];
+    // let newIndex = this.curr - 1 < -1 ? this.slides.length - 1 : this.curr - 1;
+
+    let newIndex = this.curr - 1;
+
+    this.transformTo(this.curr, newIndex, 0);
   }
 
   advance() {
-    let newIndex = slidePositions.indexOf(this.position) + 1;
-    let newPos = slidePositions[newIndex < slidePositions.length ? newIndex : slidePositions.length - newIndex];
-    this.transformTo(newPos, 0);
+    // console.log(this.curr);
+    // let newIndex = slidePositions.indexOf(this.position) + 1;
+    // let newPos = slidePositions[newIndex < slidePositions.length ? newIndex : slidePositions.length - newIndex];
+    let newIndex = this.curr + 1 >= this.slides.length ? 0 : this.curr + 1;
+
+    // console.log(newIndex);
+
+    this.transformTo(this.curr, newIndex, 0);
   }
 
-  transformTo(position, time) {
-    let transformPos = 0;
-    if (position === "center") {
-      transformPos = this.newSlammer.offsetWidth/-3;
-      this.position = "center";
-    }
-    else if (position === "next") {
-      transformPos = this.newSlammer.offsetWidth*2/-3;
-      this.position = "next";
+  transformTo(currIndex, nextIndex, time) {
+    let currTransformPos = this.newSlammer.style.transform;
+    let px = parseFloat(currTransformPos.split('(')[1].split('px')[0]);
+    let newTransformPos = 0;
+
+    if (nextIndex > currIndex || currIndex === this.slides.length - 1 && nextIndex === -1) {
+      newTransformPos = px + this.newSlammer.offsetWidth / -3;
     }
     else {
-      this.position = "prev";
+      newTransformPos = px + this.newSlammer.offsetWidth / 3;
     }
 
-    this.newSlammer.style.transform = "translateX(" + transformPos + "px)";
+    this.newSlammer.style.transform = "translateX(" + newTransformPos + "px)";
+
+
+
+    // let transformPos = 0;
+    // if (position === "center") {
+    //   transformPos = this.newSlammer.offsetWidth/-3;
+    //   this.position = "center";
+    // }
+    // else if (position === "next") {
+    //   transformPos = this.newSlammer.offsetWidth*2/-3;
+    //   this.position = "next";
+    // }
+    // else {
+    //   this.position = "prev";
+    // }
+    //
+    // this.newSlammer.style.transform = "translateX(" + transformPos + "px)";
 
   }
 
@@ -104,7 +128,9 @@ class Slammer {
 
     this.newSlammer.classList.add('slam-items');
 
-    this.transformTo("center", 0);
+    this.newSlammer.style.transform = "translateX(0px)";
+
+    this.transformTo(-1, 0, 0);
     this.acceptHammers();
 
     return;
