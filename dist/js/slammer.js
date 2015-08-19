@@ -2493,6 +2493,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 this.newSlammer = null;
                 this.position = null;
 
+                this.prevSlide = null;
+                this.currSlide = null;
+                this.nextSlide = null;
+
                 this.slam();
             }
 
@@ -2501,25 +2505,37 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             _createClass(Slammer, [{
                 key: "retreat",
                 value: function retreat() {
-                    // let newIndex = slidePositions.indexOf(this.position) + 1;
-                    // let newPos = slidePositions[newIndex < slidePositions.length ? newIndex : slidePositions.length - newIndex];
-                    // let newIndex = this.curr - 1 < -1 ? this.slides.length - 1 : this.curr - 1;
-
                     var newIndex = this.curr - 1;
 
-                    this.transformTo(this.curr, newIndex, 0);
+                    this.transformTo(this.curr, newIndex, 1);
                 }
             }, {
                 key: "advance",
                 value: function advance() {
-                    // console.log(this.curr);
-                    // let newIndex = slidePositions.indexOf(this.position) + 1;
-                    // let newPos = slidePositions[newIndex < slidePositions.length ? newIndex : slidePositions.length - newIndex];
-                    var newIndex = this.curr + 1 >= this.slides.length ? 0 : this.curr + 1;
+                    // let newIndex = this.curr + 1 >= this.slides.length ? 0 : this.curr + 1;
+                    var newIndex = this.curr + 1;
 
-                    // console.log(newIndex);
+                    console.log(newIndex);
 
-                    this.transformTo(this.curr, newIndex, 0);
+                    this.transformTo(this.curr, newIndex, 1);
+                }
+            }, {
+                key: "injectNewSurroundingSlides",
+                value: function injectNewSurroundingSlides() {
+                    console.log(this.currSlide);
+                    console.log(this.slides);
+
+                    var newCurrSlideContents = this.slides[this.curr].innerHTML;
+
+                    this.currSlide.innerHTML = newCurrSlideContents;
+                    this.transformTo(this.curr, 0, 0);
+
+                    this.curr += 1;
+
+                    var newNextSlideContents = this.slides[this.curr].innerHTML;
+                    console.log(newNextSlideContents);
+
+                    this.nextSlide.innerHTML = newNextSlideContents;
                 }
             }, {
                 key: "transformTo",
@@ -2536,20 +2552,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     this.newSlammer.style.transform = "translateX(" + newTransformPos + "px)";
 
-                    // let transformPos = 0;
-                    // if (position === "center") {
-                    //   transformPos = this.newSlammer.offsetWidth/-3;
-                    //   this.position = "center";
-                    // }
-                    // else if (position === "next") {
-                    //   transformPos = this.newSlammer.offsetWidth*2/-3;
-                    //   this.position = "next";
-                    // }
-                    // else {
-                    //   this.position = "prev";
-                    // }
-                    //
-                    // this.newSlammer.style.transform = "translateX(" + transformPos + "px)";
+                    // this.curr = nextIndex;
+
+                    if (time > 0) {
+                        this.injectNewSurroundingSlides();
+                    }
                 }
             }, {
                 key: "acceptHammers",
@@ -2575,11 +2582,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     // create new, three-slide slammer out of curr, prev, and next
                     this.newSlammer = document.createElement('div');
-                    var prev = document.createElement('div');
-                    var curr = document.createElement('div');
-                    var next = document.createElement('div');
+                    this.prevSlide = document.createElement('div');
+                    this.currSlide = document.createElement('div');
+                    this.nextSlide = document.createElement('div');
 
-                    var slides = [prev, curr, next];
+                    var slides = [this.prevSlide, this.currSlide, this.nextSlide];
                     var origSlideCopies = [];
 
                     for (var _i = 0; _i < this.slides.length; _i++) {

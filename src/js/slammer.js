@@ -24,28 +24,44 @@ class Slammer {
     this.newSlammer = null;
     this.position = null;
 
+    this.prevSlide = null;
+    this.currSlide = null;
+    this.nextSlide = null;
+
     this.slam();
   }
 
   retreat() {
-    // let newIndex = slidePositions.indexOf(this.position) + 1;
-    // let newPos = slidePositions[newIndex < slidePositions.length ? newIndex : slidePositions.length - newIndex];
-    // let newIndex = this.curr - 1 < -1 ? this.slides.length - 1 : this.curr - 1;
-
     let newIndex = this.curr - 1;
 
-    this.transformTo(this.curr, newIndex, 0);
+    this.transformTo(this.curr, newIndex, 1);
   }
 
   advance() {
-    // console.log(this.curr);
-    // let newIndex = slidePositions.indexOf(this.position) + 1;
-    // let newPos = slidePositions[newIndex < slidePositions.length ? newIndex : slidePositions.length - newIndex];
-    let newIndex = this.curr + 1 >= this.slides.length ? 0 : this.curr + 1;
+    // let newIndex = this.curr + 1 >= this.slides.length ? 0 : this.curr + 1;
+    let newIndex = this.curr + 1;
 
-    // console.log(newIndex);
+    console.log(newIndex);
 
-    this.transformTo(this.curr, newIndex, 0);
+    this.transformTo(this.curr, newIndex, 1);
+  }
+
+  injectNewSurroundingSlides() {
+    console.log(this.currSlide);
+    console.log(this.slides);
+
+    let newCurrSlideContents = this.slides[this.curr].innerHTML;
+
+    this.currSlide.innerHTML = newCurrSlideContents;
+    this.transformTo(this.curr, 0, 0);
+
+    this.curr += 1;
+
+    let newNextSlideContents = this.slides[this.curr].innerHTML;
+    console.log(newNextSlideContents);
+
+    this.nextSlide.innerHTML = newNextSlideContents;
+
   }
 
   transformTo(currIndex, nextIndex, time) {
@@ -62,22 +78,11 @@ class Slammer {
 
     this.newSlammer.style.transform = "translateX(" + newTransformPos + "px)";
 
+    // this.curr = nextIndex;
 
-
-    // let transformPos = 0;
-    // if (position === "center") {
-    //   transformPos = this.newSlammer.offsetWidth/-3;
-    //   this.position = "center";
-    // }
-    // else if (position === "next") {
-    //   transformPos = this.newSlammer.offsetWidth*2/-3;
-    //   this.position = "next";
-    // }
-    // else {
-    //   this.position = "prev";
-    // }
-    //
-    // this.newSlammer.style.transform = "translateX(" + transformPos + "px)";
+    if (time > 0){
+      this.injectNewSurroundingSlides();
+    }
 
   }
 
@@ -102,11 +107,11 @@ class Slammer {
 
     // create new, three-slide slammer out of curr, prev, and next
     this.newSlammer = document.createElement('div');
-    let prev = document.createElement('div');
-    let curr = document.createElement('div');
-    let next = document.createElement('div');
+    this.prevSlide = document.createElement('div');
+    this.currSlide = document.createElement('div');
+    this.nextSlide = document.createElement('div');
 
-    let slides = [prev, curr, next];
+    let slides = [this.prevSlide, this.currSlide, this.nextSlide];
     let origSlideCopies = [];
 
     for (let i = 0; i < this.slides.length; i++) {
@@ -118,7 +123,6 @@ class Slammer {
       this.newSlammer.appendChild(slides[i]);
       slides[i].innerHTML += origSlideCopies[i - 1 >= 0 ? i - 1 : origSlideCopies.length - 1];
     }
-
 
     const realWrapper = this.wrapper.parentNode;
 
