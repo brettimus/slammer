@@ -2521,7 +2521,13 @@ class Slammer {
     this.currSlide.innerHTML = newCurrSlideContents;
     this.transformTo(this.curr, 0, 0);
 
-    this.curr += 1;
+    // this.curr += 1;
+
+    if (this.curr + 1 >= this.slides.length) {
+      this.curr = 0;
+    } else {
+      this.curr += 1;
+    }
 
     let newNextSlideContents = this.slides[this.curr].innerHTML;
     console.log(newNextSlideContents);
