@@ -2507,15 +2507,10 @@ class Slammer {
     // let newIndex = this.curr + 1 >= this.slides.length ? 0 : this.curr + 1;
     let newIndex = this.curr + 1;
 
-    console.log(newIndex);
-
     this.transformTo(this.curr, newIndex, 1);
   }
 
   injectNewSurroundingSlides() {
-    console.log(this.currSlide);
-    console.log(this.slides);
-
     let newCurrSlideContents = this.slides[this.curr].innerHTML;
 
     this.currSlide.innerHTML = newCurrSlideContents;
@@ -2528,7 +2523,6 @@ class Slammer {
     }
 
     let newNextSlideContents = this.slides[this.curr].innerHTML;
-    console.log(newNextSlideContents);
 
     this.nextSlide.innerHTML = newNextSlideContents;
 
@@ -2547,8 +2541,6 @@ class Slammer {
     }
 
     this.newSlammer.style.transform = "translateX(" + newTransformPos + "px)";
-
-    // this.curr = nextIndex;
 
     if (time > 0){
       this.injectNewSurroundingSlides();

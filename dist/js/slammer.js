@@ -2515,16 +2515,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     // let newIndex = this.curr + 1 >= this.slides.length ? 0 : this.curr + 1;
                     var newIndex = this.curr + 1;
 
-                    console.log(newIndex);
-
                     this.transformTo(this.curr, newIndex, 1);
                 }
             }, {
                 key: "injectNewSurroundingSlides",
                 value: function injectNewSurroundingSlides() {
-                    console.log(this.currSlide);
-                    console.log(this.slides);
-
                     var newCurrSlideContents = this.slides[this.curr].innerHTML;
 
                     this.currSlide.innerHTML = newCurrSlideContents;
@@ -2537,7 +2532,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     }
 
                     var newNextSlideContents = this.slides[this.curr].innerHTML;
-                    console.log(newNextSlideContents);
 
                     this.nextSlide.innerHTML = newNextSlideContents;
                 }
@@ -2555,8 +2549,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     }
 
                     this.newSlammer.style.transform = "translateX(" + newTransformPos + "px)";
-
-                    // this.curr = nextIndex;
 
                     if (time > 0) {
                         this.injectNewSurroundingSlides();
