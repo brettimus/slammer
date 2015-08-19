@@ -55,8 +55,6 @@ class Slammer {
     this.currSlide.innerHTML = newCurrSlideContents;
     this.transformTo(this.curr, 0, 0);
 
-    // this.curr += 1;
-
     if (this.curr + 1 >= this.slides.length) {
       this.curr = 0;
     } else {
@@ -88,6 +86,8 @@ class Slammer {
 
     if (time > 0){
       this.injectNewSurroundingSlides();
+    } else if (time < 0){
+      this.curr = 1;
     }
 
   }
@@ -140,7 +140,7 @@ class Slammer {
 
     this.newSlammer.style.transform = "translateX(0px)";
 
-    this.transformTo(-1, 0, 0);
+    this.transformTo(-1, 0, -1);
     this.acceptHammers();
 
     return;
