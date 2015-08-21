@@ -2497,6 +2497,20 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             // Create Slammers out of all elts with this class.
 
             _createClass(Slammer, [{
+                key: "createNav",
+                value: function createNav() {
+                    var navWrap = document.createElement('div');
+
+                    for (var _i = 0; _i < this.slides.length; _i++) {
+                        var slideElt = document.createElement('div');
+                        slideElt.classList.add('slam-nav-item');
+                        navWrap.appendChild(slideElt);
+                    }
+
+                    navWrap.classList.add('slam-nav-wrap');
+                    this.wrapper.appendChild(navWrap);
+                }
+            }, {
                 key: "retreat",
                 value: function retreat() {
                     var newIndex = this.curr - 1;
@@ -2591,29 +2605,32 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var slides = [this.prevSlide, this.currSlide, this.nextSlide];
                     var origSlideCopies = [];
 
-                    for (var _i = 0; _i < this.slides.length; _i++) {
-                        origSlideCopies.push(this.slides[_i].innerHTML);
+                    for (var _i2 = 0; _i2 < this.slides.length; _i2++) {
+                        origSlideCopies.push(this.slides[_i2].innerHTML);
                     }
 
-                    for (var _i2 = 0; _i2 < slides.length; _i2++) {
-                        slides[_i2].classList.add('slam-item');
-                        this.newSlammer.appendChild(slides[_i2]);
-                        slides[_i2].innerHTML += origSlideCopies[_i2 - 1 >= 0 ? _i2 - 1 : origSlideCopies.length - 1];
+                    for (var _i3 = 0; _i3 < slides.length; _i3++) {
+                        slides[_i3].classList.add('slam-item');
+                        this.newSlammer.appendChild(slides[_i3]);
+                        slides[_i3].innerHTML += origSlideCopies[_i3 - 1 >= 0 ? _i3 - 1 : origSlideCopies.length - 1];
                     }
 
                     var realWrapper = this.wrapper.parentNode;
 
+                    console.log(realWrapper);
+
                     realWrapper.removeChild(this.wrapper);
 
-                    realWrapper.appendChild(this.newSlammer);
+                    this.wrapper = realWrapper;
 
+                    this.wrapper.appendChild(this.newSlammer);
                     this.newSlammer.classList.add('slam-items');
-
                     this.newSlammer.style.transform = "translateX(0px)";
-                    // this.newSlammer.style.WebkitTransition = ""
 
                     this.transformTo(-1, 0, -1);
                     this.acceptHammers();
+
+                    this.createNav();
 
                     return;
                 }
@@ -2624,8 +2641,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
         var slammers = document.getElementsByClassName('slam-items');
 
-        for (var _i3 = 0; _i3 < slammers.length; _i3++) {
-            var slammer = new Slammer(slammers[_i3]);
+        for (var _i4 = 0; _i4 < slammers.length; _i4++) {
+            var slammer = new Slammer(slammers[_i4]);
         }
     }, { "hammerjs": 1 }] }, {}, [2]);
 //# sourceMappingURL=slammer.js.map

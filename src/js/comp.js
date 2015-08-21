@@ -2490,6 +2490,19 @@ class Slammer {
     this.slam();
   }
 
+  createNav() {
+    let navWrap = document.createElement('div');
+
+    for (let i = 0; i < this.slides.length; i++) {
+      let slideElt = document.createElement('div');
+      slideElt.classList.add('slam-nav-item');
+      navWrap.appendChild(slideElt);
+    }
+
+    navWrap.classList.add('slam-nav-wrap');
+    this.wrapper.appendChild(navWrap);
+  }
+
   retreat() {
     let newIndex = this.curr - 1;
 
@@ -2590,17 +2603,20 @@ class Slammer {
 
     const realWrapper = this.wrapper.parentNode;
 
+    console.log(realWrapper);
+
     realWrapper.removeChild(this.wrapper);
 
-    realWrapper.appendChild(this.newSlammer);
+    this.wrapper = realWrapper;
 
+    this.wrapper.appendChild(this.newSlammer);
     this.newSlammer.classList.add('slam-items');
-
     this.newSlammer.style.transform = "translateX(0px)";
-    // this.newSlammer.style.WebkitTransition = ""
 
     this.transformTo(-1, 0, -1);
     this.acceptHammers();
+
+    this.createNav();
 
     return;
   }
