@@ -2470,14 +2470,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
         var Hammer = require('hammerjs');
 
-        /*
-        STEPS:
-        1. set first image active
-        2. give images data attr for index
-        3. remember "current", "prev", "next" indices
-        4. on swipe or nav tap, hide items between oldCurrIndex and newCurrIndex, and then set newCurrIndex to currIndex
-        */
-
         var activeSlideClass = "slam-item-active";
         var slidePositions = ["prev", "center", "next"];
 
@@ -2518,21 +2510,32 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 }
             }, {
                 key: "injectNewSurroundingSlides",
-                value: function injectNewSurroundingSlides() {
-                    var newCurrSlideContents = this.slides[this.curr].innerHTML;
+                value: function injectNewSurroundingSlides(currIndex, newIndex) {
+                    console.log('--------');
+                    console.log(currIndex);
+                    console.log(newIndex);
 
-                    this.currSlide.innerHTML = newCurrSlideContents;
-                    this.transformTo(this.curr, 0, 0);
+                    this.curr = newIndex;
 
-                    if (this.curr + 1 >= this.slides.length) {
-                        this.curr = 0;
-                    } else {
-                        this.curr += 1;
-                    }
-
-                    var newNextSlideContents = this.slides[this.curr].innerHTML;
-
-                    this.nextSlide.innerHTML = newNextSlideContents;
+                    // let newCurrSlideContents = this.slides[currIndex].innerHTML;
+                    //
+                    // this.currSlide.innerHTML = newCurrSlideContents;
+                    // this.transformTo(currIndex, 0, 0);
+                    //
+                    // let nextIndex = currIndex + 1;
+                    // let prevIndex = currIndex - 1;
+                    //
+                    // if (nextIndex >= this.slides.length) {
+                    //   nextIndex = 0;
+                    // }
+                    // if (prevIndex < 0) {
+                    //   prevIndex = this.slides.length - 1;
+                    // }
+                    //
+                    // let newNextSlideContents = this.slides[nextIndex].innerHTML;
+                    // let newPrevSlideContents = this.slides[prevIndex].innerHTML;
+                    // this.nextSlide.innerHTML = newNextSlideContents;
+                    // this.prevSlide.innerHTML = newPrevSlideContents;
                 }
             }, {
                 key: "transformTo",
@@ -2543,7 +2546,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var px = parseFloat(currTransformPos.split('(')[1].split('px')[0]);
                     var newTransformPos = 0;
 
-                    if (nextIndex > currIndex || currIndex === this.slides.length - 1 && nextIndex === -1) {
+                    if (nextIndex > currIndex || currIndex === this.slides.length - 1 && nextIndex === -1 || time < 0) {
                         newTransformPos = px + this.newSlammer.offsetWidth / -3;
                     } else {
                         newTransformPos = px + this.newSlammer.offsetWidth / 3;
@@ -2553,10 +2556,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         this.newSlammer.classList.add('slammer-transitioning');
                         window.setTimeout(function () {
                             _this.newSlammer.classList.remove('slammer-transitioning');
-                            _this.injectNewSurroundingSlides();
+                            _this.injectNewSurroundingSlides(currIndex, nextIndex);
                         }, 400);
                     } else if (time < 0) {
-                        this.curr = 1;
+                        this.curr = 0;
                     }
 
                     this.newSlammer.style.transform = "translateX(" + newTransformPos + "px)";
