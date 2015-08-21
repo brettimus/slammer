@@ -37,30 +37,23 @@ class Slammer {
   injectNewSurroundingSlides(currIndex, newIndex) {
     console.log('--------');
     console.log(currIndex);
-    console.log(newIndex);
 
-    this.curr = newIndex;
+    const actualNewIndex = (newIndex + this.slides.length)%this.slides.length;
+    const actualNextIndex = (actualNewIndex + 1 + this.slides.length)%this.slides.length;
+    const actualPrevIndex = (actualNewIndex - 1 + this.slides.length)%this.slides.length;
+    console.log(actualNewIndex);
 
+    let newCurrContent = this.slides[actualNewIndex].innerHTML;
+    let newNextContent = this.slides[actualNextIndex].innerHTML;
+    let newPrevContent = this.slides[actualPrevIndex].innerHTML;
 
-    // let newCurrSlideContents = this.slides[currIndex].innerHTML;
-    //
-    // this.currSlide.innerHTML = newCurrSlideContents;
-    // this.transformTo(currIndex, 0, 0);
-    //
-    // let nextIndex = currIndex + 1;
-    // let prevIndex = currIndex - 1;
-    //
-    // if (nextIndex >= this.slides.length) {
-    //   nextIndex = 0;
-    // }
-    // if (prevIndex < 0) {
-    //   prevIndex = this.slides.length - 1;
-    // }
-    //
-    // let newNextSlideContents = this.slides[nextIndex].innerHTML;
-    // let newPrevSlideContents = this.slides[prevIndex].innerHTML;
-    // this.nextSlide.innerHTML = newNextSlideContents;
-    // this.prevSlide.innerHTML = newPrevSlideContents;
+    this.currSlide.innerHTML = newCurrContent;
+    this.nextSlide.innerHTML = newNextContent;
+    this.prevSlide.innerHTML = newPrevContent;
+
+    this.curr = actualNewIndex;
+
+    this.transformTo(actualNewIndex, 0, 0);
 
   }
 

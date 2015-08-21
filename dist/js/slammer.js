@@ -2513,29 +2513,23 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 value: function injectNewSurroundingSlides(currIndex, newIndex) {
                     console.log('--------');
                     console.log(currIndex);
-                    console.log(newIndex);
 
-                    this.curr = newIndex;
+                    var actualNewIndex = (newIndex + this.slides.length) % this.slides.length;
+                    var actualNextIndex = (actualNewIndex + 1 + this.slides.length) % this.slides.length;
+                    var actualPrevIndex = (actualNewIndex - 1 + this.slides.length) % this.slides.length;
+                    console.log(actualNewIndex);
 
-                    // let newCurrSlideContents = this.slides[currIndex].innerHTML;
-                    //
-                    // this.currSlide.innerHTML = newCurrSlideContents;
-                    // this.transformTo(currIndex, 0, 0);
-                    //
-                    // let nextIndex = currIndex + 1;
-                    // let prevIndex = currIndex - 1;
-                    //
-                    // if (nextIndex >= this.slides.length) {
-                    //   nextIndex = 0;
-                    // }
-                    // if (prevIndex < 0) {
-                    //   prevIndex = this.slides.length - 1;
-                    // }
-                    //
-                    // let newNextSlideContents = this.slides[nextIndex].innerHTML;
-                    // let newPrevSlideContents = this.slides[prevIndex].innerHTML;
-                    // this.nextSlide.innerHTML = newNextSlideContents;
-                    // this.prevSlide.innerHTML = newPrevSlideContents;
+                    var newCurrContent = this.slides[actualNewIndex].innerHTML;
+                    var newNextContent = this.slides[actualNextIndex].innerHTML;
+                    var newPrevContent = this.slides[actualPrevIndex].innerHTML;
+
+                    this.currSlide.innerHTML = newCurrContent;
+                    this.nextSlide.innerHTML = newNextContent;
+                    this.prevSlide.innerHTML = newPrevContent;
+
+                    this.curr = actualNewIndex;
+
+                    this.transformTo(actualNewIndex, 0, 0);
                 }
             }, {
                 key: "transformTo",
