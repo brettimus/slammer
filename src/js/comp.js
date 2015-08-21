@@ -2471,7 +2471,7 @@ const Hammer = require('hammerjs');
 const activeSlideClass = "slam-item-active";
 const slidePositions = ["prev", "center", "next"];
 
-const transtionTime = 400;
+const transitionTime = 400;
 
 class Slammer {
   constructor(wrapperElt) {
@@ -2493,13 +2493,13 @@ class Slammer {
   retreat() {
     let newIndex = this.curr - 1;
 
-    this.transformTo(this.curr, newIndex, transtionTime);
+    this.transformTo(this.curr, newIndex, transitionTime);
   }
 
   advance() {
     let newIndex = this.curr + 1;
 
-    this.transformTo(this.curr, newIndex, transtionTime);
+    this.transformTo(this.curr, newIndex, transitionTime);
   }
 
   injectNewSurroundingSlides(currIndex, newIndex) {
@@ -2536,16 +2536,17 @@ class Slammer {
 
     if (time > 0){
       this.newSlammer.classList.add('slammer-transitioning');
+      this.newSlammer.style.WebkitTransition = 'transform ' + transitionTime/1000 + 's';
       window.setTimeout(() => {
         this.newSlammer.classList.remove('slammer-transitioning');
+        this.newSlammer.style.WebkitTransition = 'transform ' + 0 + 's';
         this.injectNewSurroundingSlides(currIndex, nextIndex);
-      }, transtionTime);
+      }, transitionTime);
     } else if (time < 0){
       this.curr = 0;
     }
 
     this.newSlammer.style.transform = "translateX(" + newTransformPos + "px)";
-
 
   }
 
@@ -2596,6 +2597,7 @@ class Slammer {
     this.newSlammer.classList.add('slam-items');
 
     this.newSlammer.style.transform = "translateX(0px)";
+    // this.newSlammer.style.WebkitTransition = ""
 
     this.transformTo(-1, 0, -1);
     this.acceptHammers();

@@ -35,12 +35,6 @@ main {
   font-size: 0;
 }
 
-/* line 30, ../../src/sass/main.sass */
-.slammer-transitioning {
-  transition-property: transform;
-  transition-duration: 0.4s;
-}
-
 /* line 34, ../../src/sass/main.sass */
 .slam-item {
   display: inline-block;

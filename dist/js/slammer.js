@@ -2473,7 +2473,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         var activeSlideClass = "slam-item-active";
         var slidePositions = ["prev", "center", "next"];
 
-        var transtionTime = 400;
+        var transitionTime = 400;
 
         var Slammer = (function () {
             function Slammer(wrapperElt) {
@@ -2501,14 +2501,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 value: function retreat() {
                     var newIndex = this.curr - 1;
 
-                    this.transformTo(this.curr, newIndex, transtionTime);
+                    this.transformTo(this.curr, newIndex, transitionTime);
                 }
             }, {
                 key: "advance",
                 value: function advance() {
                     var newIndex = this.curr + 1;
 
-                    this.transformTo(this.curr, newIndex, transtionTime);
+                    this.transformTo(this.curr, newIndex, transitionTime);
                 }
             }, {
                 key: "injectNewSurroundingSlides",
@@ -2548,10 +2548,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     if (time > 0) {
                         this.newSlammer.classList.add('slammer-transitioning');
+                        this.newSlammer.style.WebkitTransition = 'transform ' + transitionTime / 1000 + 's';
                         window.setTimeout(function () {
                             _this.newSlammer.classList.remove('slammer-transitioning');
+                            _this.newSlammer.style.WebkitTransition = 'transform ' + 0 + 's';
                             _this.injectNewSurroundingSlides(currIndex, nextIndex);
-                        }, transtionTime);
+                        }, transitionTime);
                     } else if (time < 0) {
                         this.curr = 0;
                     }
@@ -2608,6 +2610,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     this.newSlammer.classList.add('slam-items');
 
                     this.newSlammer.style.transform = "translateX(0px)";
+                    // this.newSlammer.style.WebkitTransition = ""
 
                     this.transformTo(-1, 0, -1);
                     this.acceptHammers();
