@@ -2473,6 +2473,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         var activeSlideClass = "slam-item-active";
         var slidePositions = ["prev", "center", "next"];
 
+        var transtionTime = 400;
+
         var Slammer = (function () {
             function Slammer(wrapperElt) {
                 _classCallCheck(this, Slammer);
@@ -2499,14 +2501,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 value: function retreat() {
                     var newIndex = this.curr - 1;
 
-                    this.transformTo(this.curr, newIndex, 1);
+                    this.transformTo(this.curr, newIndex, transtionTime);
                 }
             }, {
                 key: "advance",
                 value: function advance() {
                     var newIndex = this.curr + 1;
 
-                    this.transformTo(this.curr, newIndex, 1);
+                    this.transformTo(this.curr, newIndex, transtionTime);
                 }
             }, {
                 key: "injectNewSurroundingSlides",
@@ -2549,7 +2551,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         window.setTimeout(function () {
                             _this.newSlammer.classList.remove('slammer-transitioning');
                             _this.injectNewSurroundingSlides(currIndex, nextIndex);
-                        }, 400);
+                        }, transtionTime);
                     } else if (time < 0) {
                         this.curr = 0;
                     }
