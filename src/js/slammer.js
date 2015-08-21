@@ -38,7 +38,6 @@ class Slammer {
   }
 
   advance() {
-    // let newIndex = this.curr + 1 >= this.slides.length ? 0 : this.curr + 1;
     let newIndex = this.curr + 1;
 
     this.transformTo(this.curr, newIndex, 1);
@@ -74,13 +73,19 @@ class Slammer {
       newTransformPos = px + this.newSlammer.offsetWidth / 3;
     }
 
-    this.newSlammer.style.transform = "translateX(" + newTransformPos + "px)";
 
     if (time > 0){
-      this.injectNewSurroundingSlides();
+      this.newSlammer.classList.add('slammer-transitioning');
+      window.setTimeout(() => {
+        this.newSlammer.classList.remove('slammer-transitioning');
+        this.injectNewSurroundingSlides();
+      }, 400);
     } else if (time < 0){
       this.curr = 1;
     }
+
+    this.newSlammer.style.transform = "translateX(" + newTransformPos + "px)";
+
 
   }
 

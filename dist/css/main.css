@@ -36,6 +36,12 @@ main {
 }
 
 /* line 30, ../../src/sass/main.sass */
+.slammer-transitioning {
+  transition-property: transform;
+  transition-duration: 0.4s;
+}
+
+/* line 34, ../../src/sass/main.sass */
 .slam-item {
   display: inline-block;
   width: 33.33333%;
@@ -45,7 +51,7 @@ main {
   -webkit-user-drag: none;
   user-drag: none;
 }
-/* line 38, ../../src/sass/main.sass */
+/* line 42, ../../src/sass/main.sass */
 .slam-item > img {
   width: 100%;
   height: auto;

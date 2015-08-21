@@ -2512,7 +2512,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "advance",
                 value: function advance() {
-                    // let newIndex = this.curr + 1 >= this.slides.length ? 0 : this.curr + 1;
                     var newIndex = this.curr + 1;
 
                     this.transformTo(this.curr, newIndex, 1);
@@ -2538,6 +2537,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "transformTo",
                 value: function transformTo(currIndex, nextIndex, time) {
+                    var _this = this;
+
                     var currTransformPos = this.newSlammer.style.transform;
                     var px = parseFloat(currTransformPos.split('(')[1].split('px')[0]);
                     var newTransformPos = 0;
@@ -2548,25 +2549,29 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         newTransformPos = px + this.newSlammer.offsetWidth / 3;
                     }
 
-                    this.newSlammer.style.transform = "translateX(" + newTransformPos + "px)";
-
                     if (time > 0) {
-                        this.injectNewSurroundingSlides();
+                        this.newSlammer.classList.add('slammer-transitioning');
+                        window.setTimeout(function () {
+                            _this.newSlammer.classList.remove('slammer-transitioning');
+                            _this.injectNewSurroundingSlides();
+                        }, 400);
                     } else if (time < 0) {
                         this.curr = 1;
                     }
+
+                    this.newSlammer.style.transform = "translateX(" + newTransformPos + "px)";
                 }
             }, {
                 key: "acceptHammers",
                 value: function acceptHammers() {
-                    var _this = this;
+                    var _this2 = this;
 
                     var hammer = new Hammer(this.newSlammer);
                     hammer.on('swipe', function (e) {
                         if (e.direction === 2) {
-                            _this.advance();
+                            _this2.advance();
                         } else if (e.direction === 4) {
-                            _this.retreat();
+                            _this2.retreat();
                         }
                     });
                 }
