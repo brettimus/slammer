@@ -2501,6 +2501,19 @@ class Slammer {
 
     navWrap.classList.add('slam-nav-wrap');
     this.wrapper.appendChild(navWrap);
+    this.updateNav();
+  }
+
+  updateNav() {
+    let navItems = document.getElementsByClassName('slam-nav-item');
+
+    for (let i = 0; i < navItems.length; i++) {
+      if (navItems[i].classList.contains('slam-nav-active')) {
+        navItems[i].classList.remove('slam-nav-active');
+      } else if (i === this.curr) {
+        navItems[i].classList.add('slam-nav-active');
+      }
+    }
   }
 
   retreat() {
@@ -2531,6 +2544,7 @@ class Slammer {
     this.curr = actualNewIndex;
 
     this.transformTo(actualNewIndex, 0, 0);
+    this.updateNav();
 
   }
 
@@ -2557,10 +2571,10 @@ class Slammer {
       }, transitionTime);
     } else if (time < 0){
       this.curr = 0;
+      this.updateNav();
     }
 
     this.newSlammer.style.transform = "translateX(" + newTransformPos + "px)";
-
   }
 
   acceptHammers() {

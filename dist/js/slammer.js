@@ -2509,6 +2509,20 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     navWrap.classList.add('slam-nav-wrap');
                     this.wrapper.appendChild(navWrap);
+                    this.updateNav();
+                }
+            }, {
+                key: "updateNav",
+                value: function updateNav() {
+                    var navItems = document.getElementsByClassName('slam-nav-item');
+
+                    for (var _i2 = 0; _i2 < navItems.length; _i2++) {
+                        if (navItems[_i2].classList.contains('slam-nav-active')) {
+                            navItems[_i2].classList.remove('slam-nav-active');
+                        } else if (_i2 === this.curr) {
+                            navItems[_i2].classList.add('slam-nav-active');
+                        }
+                    }
                 }
             }, {
                 key: "retreat",
@@ -2542,6 +2556,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     this.curr = actualNewIndex;
 
                     this.transformTo(actualNewIndex, 0, 0);
+                    this.updateNav();
                 }
             }, {
                 key: "transformTo",
@@ -2570,6 +2585,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         }, transitionTime);
                     } else if (time < 0) {
                         this.curr = 0;
+                        this.updateNav();
                     }
 
                     this.newSlammer.style.transform = "translateX(" + newTransformPos + "px)";
@@ -2605,14 +2621,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var slides = [this.prevSlide, this.currSlide, this.nextSlide];
                     var origSlideCopies = [];
 
-                    for (var _i2 = 0; _i2 < this.slides.length; _i2++) {
-                        origSlideCopies.push(this.slides[_i2].innerHTML);
+                    for (var _i3 = 0; _i3 < this.slides.length; _i3++) {
+                        origSlideCopies.push(this.slides[_i3].innerHTML);
                     }
 
-                    for (var _i3 = 0; _i3 < slides.length; _i3++) {
-                        slides[_i3].classList.add('slam-item');
-                        this.newSlammer.appendChild(slides[_i3]);
-                        slides[_i3].innerHTML += origSlideCopies[_i3 - 1 >= 0 ? _i3 - 1 : origSlideCopies.length - 1];
+                    for (var _i4 = 0; _i4 < slides.length; _i4++) {
+                        slides[_i4].classList.add('slam-item');
+                        this.newSlammer.appendChild(slides[_i4]);
+                        slides[_i4].innerHTML += origSlideCopies[_i4 - 1 >= 0 ? _i4 - 1 : origSlideCopies.length - 1];
                     }
 
                     var realWrapper = this.wrapper.parentNode;
@@ -2641,8 +2657,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
         var slammers = document.getElementsByClassName('slam-items');
 
-        for (var _i4 = 0; _i4 < slammers.length; _i4++) {
-            var slammer = new Slammer(slammers[_i4]);
+        for (var _i5 = 0; _i5 < slammers.length; _i5++) {
+            var slammer = new Slammer(slammers[_i5]);
         }
     }, { "hammerjs": 1 }] }, {}, [2]);
 //# sourceMappingURL=slammer.js.map
