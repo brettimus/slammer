@@ -25,12 +25,19 @@ class Slammer {
   }
 
   createNav() {
-    let navWrap = document.createElement('div');
+    let navWrap = document.createElement('nav');
 
     for (let i = 0; i < this.slides.length; i++) {
       let slideElt = document.createElement('div');
       slideElt.classList.add('slam-nav-item');
       navWrap.appendChild(slideElt);
+      slideElt.addEventListener('click', () => {
+        console.log('click on #' + i);
+        console.log(this.curr);
+        if (i !== this.curr) {
+          this.transformTo(this.curr, i, transitionTime);
+        }
+      });
     }
 
     navWrap.classList.add('slam-nav-wrap');
@@ -150,8 +157,6 @@ class Slammer {
     }
 
     const realWrapper = this.wrapper.parentNode;
-
-    console.log(realWrapper);
 
     realWrapper.removeChild(this.wrapper);
 

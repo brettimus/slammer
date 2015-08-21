@@ -2499,12 +2499,25 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             _createClass(Slammer, [{
                 key: "createNav",
                 value: function createNav() {
-                    var navWrap = document.createElement('div');
+                    var _this = this;
 
-                    for (var _i = 0; _i < this.slides.length; _i++) {
+                    var navWrap = document.createElement('nav');
+
+                    var _loop = function (_i) {
                         var slideElt = document.createElement('div');
                         slideElt.classList.add('slam-nav-item');
                         navWrap.appendChild(slideElt);
+                        slideElt.addEventListener('click', function () {
+                            console.log('click on #' + _i);
+                            console.log(_this.curr);
+                            if (_i !== _this.curr) {
+                                _this.transformTo(_this.curr, _i, transitionTime);
+                            }
+                        });
+                    };
+
+                    for (var _i = 0; _i < this.slides.length; _i++) {
+                        _loop(_i);
                     }
 
                     navWrap.classList.add('slam-nav-wrap');
@@ -2561,7 +2574,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "transformTo",
                 value: function transformTo(currIndex, nextIndex, time) {
-                    var _this = this;
+                    var _this2 = this;
 
                     var currTransformPos = this.newSlammer.style.transform;
                     var px = parseFloat(currTransformPos.split('(')[1].split('px')[0]);
@@ -2579,9 +2592,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         this.newSlammer.classList.add('slammer-transitioning');
                         this.newSlammer.style.WebkitTransition = 'transform ' + transitionTime / 1000 + 's';
                         window.setTimeout(function () {
-                            _this.newSlammer.classList.remove('slammer-transitioning');
-                            _this.newSlammer.style.WebkitTransition = 'transform ' + 0 + 's';
-                            _this.injectNewSurroundingSlides(currIndex, nextIndex);
+                            _this2.newSlammer.classList.remove('slammer-transitioning');
+                            _this2.newSlammer.style.WebkitTransition = 'transform ' + 0 + 's';
+                            _this2.injectNewSurroundingSlides(currIndex, nextIndex);
                         }, transitionTime);
                     } else if (time < 0) {
                         this.curr = 0;
@@ -2593,14 +2606,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "acceptHammers",
                 value: function acceptHammers() {
-                    var _this2 = this;
+                    var _this3 = this;
 
                     var hammer = new Hammer(this.newSlammer);
                     hammer.on('swipe', function (e) {
                         if (e.direction === 2) {
-                            _this2.advance();
+                            _this3.advance();
                         } else if (e.direction === 4) {
-                            _this2.retreat();
+                            _this3.retreat();
                         }
                     });
                 }
@@ -2632,8 +2645,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     }
 
                     var realWrapper = this.wrapper.parentNode;
-
-                    console.log(realWrapper);
 
                     realWrapper.removeChild(this.wrapper);
 
