@@ -7,6 +7,8 @@ const slidePositions = ["prev", "center", "next"];
 
 const transitionTime = 450;
 
+let locked = true;
+
 class Slammer {
   constructor(wrapperElt) {
     this.wrapper = wrapperElt;
@@ -32,13 +34,15 @@ class Slammer {
       slideElt.classList.add('slam-nav-item');
       navWrap.appendChild(slideElt);
       slideElt.addEventListener('click', () => {
-        if (i !== this.curr) {
-          // if the new slide is only offset by 1 from the current one,
-          // then we can proceed as usual.
-          if (Math.abs(this.curr - i) <= 1){
-            this.transformTo(this.curr, i, transitionTime);
-          } else {
-            console.log('nonadjacent transition');
+        if (!locked) {
+          if (i !== this.curr) {
+            // if the new slide is only offset by 1 from the current one,
+            // then we can proceed as usual.
+            if (Math.abs(this.curr - i) <= 1){
+              this.transformTo(this.curr, i, transitionTime);
+            } else {
+              console.log('nonadjacent transition');
+            }
           }
         }
       });
@@ -107,12 +111,14 @@ class Slammer {
     }
 
     if (time > 0){
+      locked = true;
       this.newSlammer.classList.add('slammer-transitioning');
       this.newSlammer.style.WebkitTransition = 'transform ' + transitionTime/1000 + 's';
       window.setTimeout(() => {
         this.newSlammer.classList.remove('slammer-transitioning');
         this.newSlammer.style.WebkitTransition = 'transform ' + 0 + 's';
         this.injectNewSurroundingSlides(currIndex, nextIndex);
+        locked = false;
       }, transitionTime);
     } else if (time < 0){
       this.curr = 0;
@@ -125,11 +131,13 @@ class Slammer {
   acceptHammers() {
     let hammer = new Hammer(this.newSlammer);
     hammer.on('swipe', (e) => {
-      if (e.direction === 2) {
-        this.advance();
-      }
-      else if (e.direction === 4) {
-        this.retreat();
+      if (!locked) {
+        if (e.direction === 2) {
+          this.advance();
+        }
+        else if (e.direction === 4) {
+          this.retreat();
+        }
       }
     });
   }
@@ -174,6 +182,8 @@ class Slammer {
     this.acceptHammers();
 
     this.createNav();
+
+    locked = false;
 
     return;
   }

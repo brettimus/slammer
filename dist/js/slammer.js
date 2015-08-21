@@ -2475,6 +2475,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
         var transitionTime = 450;
 
+        var locked = true;
+
         var Slammer = (function () {
             function Slammer(wrapperElt) {
                 _classCallCheck(this, Slammer);
@@ -2508,13 +2510,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         slideElt.classList.add('slam-nav-item');
                         navWrap.appendChild(slideElt);
                         slideElt.addEventListener('click', function () {
-                            if (_i !== _this.curr) {
-                                // if the new slide is only offset by 1 from the current one,
-                                // then we can proceed as usual.
-                                if (Math.abs(_this.curr - _i) <= 1) {
-                                    _this.transformTo(_this.curr, _i, transitionTime);
-                                } else {
-                                    console.log('nonadjacent transition');
+                            if (!locked) {
+                                if (_i !== _this.curr) {
+                                    // if the new slide is only offset by 1 from the current one,
+                                    // then we can proceed as usual.
+                                    if (Math.abs(_this.curr - _i) <= 1) {
+                                        _this.transformTo(_this.curr, _i, transitionTime);
+                                    } else {
+                                        console.log('nonadjacent transition');
+                                    }
                                 }
                             }
                         });
@@ -2593,12 +2597,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     }
 
                     if (time > 0) {
+                        locked = true;
                         this.newSlammer.classList.add('slammer-transitioning');
                         this.newSlammer.style.WebkitTransition = 'transform ' + transitionTime / 1000 + 's';
                         window.setTimeout(function () {
                             _this2.newSlammer.classList.remove('slammer-transitioning');
                             _this2.newSlammer.style.WebkitTransition = 'transform ' + 0 + 's';
                             _this2.injectNewSurroundingSlides(currIndex, nextIndex);
+                            locked = false;
                         }, transitionTime);
                     } else if (time < 0) {
                         this.curr = 0;
@@ -2614,10 +2620,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     var hammer = new Hammer(this.newSlammer);
                     hammer.on('swipe', function (e) {
-                        if (e.direction === 2) {
-                            _this3.advance();
-                        } else if (e.direction === 4) {
-                            _this3.retreat();
+                        if (!locked) {
+                            if (e.direction === 2) {
+                                _this3.advance();
+                            } else if (e.direction === 4) {
+                                _this3.retreat();
+                            }
                         }
                     });
                 }
@@ -2662,6 +2670,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     this.acceptHammers();
 
                     this.createNav();
+
+                    locked = false;
 
                     return;
                 }
