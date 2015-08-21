@@ -2499,7 +2499,13 @@ class Slammer {
       navWrap.appendChild(slideElt);
       slideElt.addEventListener('click', () => {
         if (i !== this.curr) {
-          this.transformTo(this.curr, i, transitionTime);
+          // if the new slide is only offset by 1 from the current one,
+          // then we can proceed as usual.
+          if (Math.abs(this.curr - i) <= 1){
+            this.transformTo(this.curr, i, transitionTime);
+          } else {
+            console.log('nonadjacent transition');
+          }
         }
       });
     }

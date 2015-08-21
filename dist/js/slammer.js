@@ -2509,7 +2509,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         navWrap.appendChild(slideElt);
                         slideElt.addEventListener('click', function () {
                             if (_i !== _this.curr) {
-                                _this.transformTo(_this.curr, _i, transitionTime);
+                                // if the new slide is only offset by 1 from the current one,
+                                // then we can proceed as usual.
+                                if (Math.abs(_this.curr - _i) <= 1) {
+                                    _this.transformTo(_this.curr, _i, transitionTime);
+                                } else {
+                                    console.log('nonadjacent transition');
+                                }
                             }
                         });
                     };
