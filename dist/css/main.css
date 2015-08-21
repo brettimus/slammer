@@ -35,7 +35,7 @@ main {
   font-size: 0;
 }
 
-/* line 34, ../../src/sass/main.sass */
+/* line 30, ../../src/sass/main.sass */
 .slam-item {
   display: inline-block;
   width: 33.33333%;
@@ -45,7 +45,7 @@ main {
   -webkit-user-drag: none;
   user-drag: none;
 }
-/* line 42, ../../src/sass/main.sass */
+/* line 38, ../../src/sass/main.sass */
 .slam-item > img {
   width: 100%;
   height: auto;
