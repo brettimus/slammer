@@ -2511,13 +2511,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "injectNewSurroundingSlides",
                 value: function injectNewSurroundingSlides(currIndex, newIndex) {
-                    console.log('--------');
-                    console.log(currIndex);
-
                     var actualNewIndex = (newIndex + this.slides.length) % this.slides.length;
                     var actualNextIndex = (actualNewIndex + 1 + this.slides.length) % this.slides.length;
                     var actualPrevIndex = (actualNewIndex - 1 + this.slides.length) % this.slides.length;
-                    console.log(actualNewIndex);
 
                     var newCurrContent = this.slides[actualNewIndex].innerHTML;
                     var newNextContent = this.slides[actualNextIndex].innerHTML;
@@ -2540,7 +2536,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var px = parseFloat(currTransformPos.split('(')[1].split('px')[0]);
                     var newTransformPos = 0;
 
-                    if (nextIndex > currIndex || currIndex === this.slides.length - 1 && nextIndex === -1 || time < 0) {
+                    if (time <= 0) {
+                        newTransformPos = this.newSlammer.offsetWidth / -3;
+                    } else if (nextIndex > currIndex || currIndex === this.slides.length - 1 && nextIndex === -1) {
                         newTransformPos = px + this.newSlammer.offsetWidth / -3;
                     } else {
                         newTransformPos = px + this.newSlammer.offsetWidth / 3;

@@ -35,13 +35,9 @@ class Slammer {
   }
 
   injectNewSurroundingSlides(currIndex, newIndex) {
-    console.log('--------');
-    console.log(currIndex);
-
     const actualNewIndex = (newIndex + this.slides.length)%this.slides.length;
     const actualNextIndex = (actualNewIndex + 1 + this.slides.length)%this.slides.length;
     const actualPrevIndex = (actualNewIndex - 1 + this.slides.length)%this.slides.length;
-    console.log(actualNewIndex);
 
     let newCurrContent = this.slides[actualNewIndex].innerHTML;
     let newNextContent = this.slides[actualNextIndex].innerHTML;
@@ -62,10 +58,11 @@ class Slammer {
     let px = parseFloat(currTransformPos.split('(')[1].split('px')[0]);
     let newTransformPos = 0;
 
-    if (nextIndex > currIndex || currIndex === this.slides.length - 1 && nextIndex === -1 || time < 0) {
+    if (time <= 0) {
+      newTransformPos = this.newSlammer.offsetWidth / -3;
+    } else if (nextIndex > currIndex || currIndex === this.slides.length - 1 && nextIndex === -1) {
       newTransformPos = px + this.newSlammer.offsetWidth / -3;
-    }
-    else {
+    } else {
       newTransformPos = px + this.newSlammer.offsetWidth / 3;
     }
 
