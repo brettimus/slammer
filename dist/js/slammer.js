@@ -2473,7 +2473,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         var activeSlideClass = "slam-item-active";
         var slidePositions = ["prev", "center", "next"];
 
-        var transitionTime = 400;
+        var transitionTime = 450;
 
         var Slammer = (function () {
             function Slammer(wrapperElt) {

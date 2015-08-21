@@ -2471,7 +2471,7 @@ const Hammer = require('hammerjs');
 const activeSlideClass = "slam-item-active";
 const slidePositions = ["prev", "center", "next"];
 
-const transitionTime = 400;
+const transitionTime = 450;
 
 class Slammer {
   constructor(wrapperElt) {
