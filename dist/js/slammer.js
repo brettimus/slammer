@@ -2508,8 +2508,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         slideElt.classList.add('slam-nav-item');
                         navWrap.appendChild(slideElt);
                         slideElt.addEventListener('click', function () {
-                            console.log('click on #' + _i);
-                            console.log(_this.curr);
                             if (_i !== _this.curr) {
                                 _this.transformTo(_this.curr, _i, transitionTime);
                             }

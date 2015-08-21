@@ -32,8 +32,6 @@ class Slammer {
       slideElt.classList.add('slam-nav-item');
       navWrap.appendChild(slideElt);
       slideElt.addEventListener('click', () => {
-        console.log('click on #' + i);
-        console.log(this.curr);
         if (i !== this.curr) {
           this.transformTo(this.curr, i, transitionTime);
         }
