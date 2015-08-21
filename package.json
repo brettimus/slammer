@@ -9,8 +9,7 @@
   "author": "Violet Peña",
   "license": "ISC",
   "dependencies": {
-    "hammerjs": "^2.0.4",
-    "properjs-tween": "^0.1.4"
+    "hammerjs": "^2.0.4"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
