@@ -22,6 +22,6 @@ Someday, these will be configurable defaults, but for now they're set in stone:
 - One slide is visible at once
 - There is a nav
 
-###Future plans
+##Future plans
 - detecting load of injected slides and not using a timeout to perform nonadjacent slide transformations
 - load subset of Hammer instead of the entire thing
