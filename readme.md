@@ -1,4 +1,4 @@
-#Come on and slam
+#Come on and [slam](https://www.youtube.com/watch?v=3_vz-DzVm4I)
 
 Slammer is a lightweight (at least it tries to be) slider written in vanilla JS with [Hammer](http://hammerjs.github.io/) to provide touch support.
 
