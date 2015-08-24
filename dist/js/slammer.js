@@ -2669,6 +2669,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 key: "slam",
                 value: function slam() {
 
+                    if (this.slides.length < 2) {
+                        console.debug('Error (Slammer): too few elements to create slider.');
+                        return;
+                    }
+
                     // create new, three-slide slammer out of curr, prev, and next
                     this.newSlammer = document.createElement('div');
                     this.prevSlide = document.createElement('div');
