@@ -2507,7 +2507,11 @@ class Slammer {
             if (Math.abs(this.curr - i) <= 1){
               this.transformTo(this.curr, i, transitionTime);
             } else {
-              console.log('nonadjacent transition');
+              if (i > this.curr) {
+                this.specialAdvance(i);
+              } else {
+                this.specialRetreat(i);
+              }
             }
           }
         }
@@ -2517,6 +2521,29 @@ class Slammer {
     navWrap.classList.add('slam-nav-wrap');
     this.wrapper.appendChild(navWrap);
     this.updateNav();
+  }
+
+  specialAdvance(newIndex) {
+    console.log('special advance to ' + newIndex + ' from ' + this.curr);
+
+    // 1. inject contents of newIndex into Next slide
+    let newContent = this.slides[newIndex].innerHTML;
+    this.nextSlide.innerHTML = newContent;
+
+    // 2. transformTo(nextIndex)
+    this.transformTo(this.curr, newIndex, transitionTime);
+
+  }
+
+  specialRetreat(newIndex) {
+    console.log('special retreat to ' + newIndex + ' from ' + this.curr);
+
+    // 1. inject contents of newIndex into Next slide
+    let newContent = this.slides[newIndex].innerHTML;
+    this.prevSlide.innerHTML = newContent;
+
+    // 2. transformTo(nextIndex)
+    this.transformTo(this.curr, newIndex, transitionTime);
   }
 
   updateNav() {

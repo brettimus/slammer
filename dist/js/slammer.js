@@ -2517,7 +2517,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                                     if (Math.abs(_this.curr - _i) <= 1) {
                                         _this.transformTo(_this.curr, _i, transitionTime);
                                     } else {
-                                        console.log('nonadjacent transition');
+                                        if (_i > _this.curr) {
+                                            _this.specialAdvance(_i);
+                                        } else {
+                                            _this.specialRetreat(_i);
+                                        }
                                     }
                                 }
                             }
@@ -2531,6 +2535,30 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     navWrap.classList.add('slam-nav-wrap');
                     this.wrapper.appendChild(navWrap);
                     this.updateNav();
+                }
+            }, {
+                key: "specialAdvance",
+                value: function specialAdvance(newIndex) {
+                    console.log('special advance to ' + newIndex + ' from ' + this.curr);
+
+                    // 1. inject contents of newIndex into Next slide
+                    var newContent = this.slides[newIndex].innerHTML;
+                    this.nextSlide.innerHTML = newContent;
+
+                    // 2. transformTo(nextIndex)
+                    this.transformTo(this.curr, newIndex, transitionTime);
+                }
+            }, {
+                key: "specialRetreat",
+                value: function specialRetreat(newIndex) {
+                    console.log('special retreat to ' + newIndex + ' from ' + this.curr);
+
+                    // 1. inject contents of newIndex into Next slide
+                    var newContent = this.slides[newIndex].innerHTML;
+                    this.prevSlide.innerHTML = newContent;
+
+                    // 2. transformTo(nextIndex)
+                    this.transformTo(this.curr, newIndex, transitionTime);
                 }
             }, {
                 key: "updateNav",
