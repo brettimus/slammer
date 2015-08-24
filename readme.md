@@ -5,7 +5,7 @@ Slammer is a lightweight (at least it tries to be) slider written in vanilla JS 
 
 ##Getting started
 
-If you just want to use it, all you need is `slammer.js` and `hammer.js`. **Note: I think the prod-dist version of this should even have the option of one pre-concatenated file?**
+If you just want to use it, all you need is `slammer.js` and `hammer.js`.
 
 If you want to dev with it:
 
