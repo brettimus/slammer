@@ -2496,8 +2496,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 this.slam();
             }
 
-            // Create Slammers out of all elts with this class.
-
             _createClass(Slammer, [{
                 key: "createNav",
                 value: function createNav() {
@@ -2717,10 +2715,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             return Slammer;
         })();
 
-        var slammers = document.getElementsByClassName('slam-items');
+        window.onload = function () {
+            // Create Slammers out of all elts with this class.
+            var slammers = document.getElementsByClassName('slam-items');
 
-        for (var _i5 = 0; _i5 < slammers.length; _i5++) {
-            var slammer = new Slammer(slammers[_i5]);
-        }
+            for (var _i5 = 0; _i5 < slammers.length; _i5++) {
+                var slammer = new Slammer(slammers[_i5]);
+            }
+        };
     }, { "hammerjs": 1 }] }, {}, [2]);
 //# sourceMappingURL=slammer.js.map

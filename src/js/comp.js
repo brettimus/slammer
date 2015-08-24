@@ -2689,13 +2689,13 @@ class Slammer {
 
 }
 
+window.onload = function() {
+  // Create Slammers out of all elts with this class.
+  const slammers = document.getElementsByClassName('slam-items');
 
-
-// Create Slammers out of all elts with this class.
-const slammers = document.getElementsByClassName('slam-items');
-
-for (let i = 0; i < slammers.length; i++) {
-  let slammer = new Slammer(slammers[i]);
+  for (let i = 0; i < slammers.length; i++) {
+    let slammer = new Slammer(slammers[i]);
+  }  
 }
 
 },{"hammerjs":1}]},{},[2]);
