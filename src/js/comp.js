@@ -2524,14 +2524,14 @@ class Slammer {
   }
 
   specialAdvance(newIndex) {
-    console.log('special advance to ' + newIndex + ' from ' + this.curr);
-
     // 1. inject contents of newIndex into Next slide
     let newContent = this.slides[newIndex].innerHTML;
     this.nextSlide.innerHTML = newContent;
 
     // 2. transformTo(nextIndex)
-    this.transformTo(this.curr, newIndex, transitionTime);
+    window.setTimeout(() => {
+      this.transformTo(this.curr, newIndex, transitionTime);
+    }, 10);
 
   }
 
@@ -2541,7 +2541,9 @@ class Slammer {
     this.prevSlide.innerHTML = newContent;
 
     // 2. transformTo(nextIndex)
-    this.transformTo(this.curr, newIndex, transitionTime);
+    window.setTimeout(() => {
+      this.transformTo(this.curr, newIndex, transitionTime);
+    }, 10);
   }
 
   updateNav() {

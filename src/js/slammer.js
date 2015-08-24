@@ -63,7 +63,9 @@ class Slammer {
     this.nextSlide.innerHTML = newContent;
 
     // 2. transformTo(nextIndex)
-    this.transformTo(this.curr, newIndex, transitionTime);
+    window.setTimeout(() => {
+      this.transformTo(this.curr, newIndex, transitionTime);
+    }, 10);
 
   }
 
@@ -73,7 +75,9 @@ class Slammer {
     this.prevSlide.innerHTML = newContent;
 
     // 2. transformTo(nextIndex)
-    this.transformTo(this.curr, newIndex, transitionTime);
+    window.setTimeout(() => {
+      this.transformTo(this.curr, newIndex, transitionTime);
+    }, 10);
   }
 
   updateNav() {

@@ -2539,24 +2539,30 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "specialAdvance",
                 value: function specialAdvance(newIndex) {
-                    console.log('special advance to ' + newIndex + ' from ' + this.curr);
+                    var _this2 = this;
 
                     // 1. inject contents of newIndex into Next slide
                     var newContent = this.slides[newIndex].innerHTML;
                     this.nextSlide.innerHTML = newContent;
 
                     // 2. transformTo(nextIndex)
-                    this.transformTo(this.curr, newIndex, transitionTime);
+                    window.setTimeout(function () {
+                        _this2.transformTo(_this2.curr, newIndex, transitionTime);
+                    }, 10);
                 }
             }, {
                 key: "specialRetreat",
                 value: function specialRetreat(newIndex) {
+                    var _this3 = this;
+
                     // 1. inject contents of newIndex into Prev slide
                     var newContent = this.slides[newIndex].innerHTML;
                     this.prevSlide.innerHTML = newContent;
 
                     // 2. transformTo(nextIndex)
-                    this.transformTo(this.curr, newIndex, transitionTime);
+                    window.setTimeout(function () {
+                        _this3.transformTo(_this3.curr, newIndex, transitionTime);
+                    }, 10);
                 }
             }, {
                 key: "updateNav",
@@ -2608,7 +2614,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "transformTo",
                 value: function transformTo(currIndex, nextIndex, time) {
-                    var _this2 = this;
+                    var _this4 = this;
 
                     var currTransformPos = this.newSlammer.style.transform;
                     var px = parseFloat(currTransformPos.split('(')[1].split('px')[0]);
@@ -2627,9 +2633,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         this.newSlammer.classList.add('slammer-transitioning');
                         this.newSlammer.style.WebkitTransition = 'transform ' + transitionTime / 1000 + 's';
                         window.setTimeout(function () {
-                            _this2.newSlammer.classList.remove('slammer-transitioning');
-                            _this2.newSlammer.style.WebkitTransition = 'transform ' + 0 + 's';
-                            _this2.injectNewSurroundingSlides(currIndex, nextIndex);
+                            _this4.newSlammer.classList.remove('slammer-transitioning');
+                            _this4.newSlammer.style.WebkitTransition = 'transform ' + 0 + 's';
+                            _this4.injectNewSurroundingSlides(currIndex, nextIndex);
                             locked = false;
                         }, transitionTime);
                     } else if (time < 0) {
@@ -2642,15 +2648,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "acceptHammers",
                 value: function acceptHammers() {
-                    var _this3 = this;
+                    var _this5 = this;
 
                     var hammer = new Hammer(this.newSlammer);
                     hammer.on('swipe', function (e) {
                         if (!locked) {
                             if (e.direction === 2) {
-                                _this3.advance();
+                                _this5.advance();
                             } else if (e.direction === 4) {
-                                _this3.retreat();
+                                _this5.retreat();
                             }
                         }
                     });
