@@ -2551,9 +2551,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "specialRetreat",
                 value: function specialRetreat(newIndex) {
-                    console.log('special retreat to ' + newIndex + ' from ' + this.curr);
-
-                    // 1. inject contents of newIndex into Next slide
+                    // 1. inject contents of newIndex into Prev slide
                     var newContent = this.slides[newIndex].innerHTML;
                     this.prevSlide.innerHTML = newContent;
 

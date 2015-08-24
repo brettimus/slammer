@@ -58,8 +58,6 @@ class Slammer {
   }
 
   specialAdvance(newIndex) {
-    console.log('special advance to ' + newIndex + ' from ' + this.curr);
-
     // 1. inject contents of newIndex into Next slide
     let newContent = this.slides[newIndex].innerHTML;
     this.nextSlide.innerHTML = newContent;
@@ -70,9 +68,7 @@ class Slammer {
   }
 
   specialRetreat(newIndex) {
-    console.log('special retreat to ' + newIndex + ' from ' + this.curr);
-
-    // 1. inject contents of newIndex into Next slide
+    // 1. inject contents of newIndex into Prev slide
     let newContent = this.slides[newIndex].innerHTML;
     this.prevSlide.innerHTML = newContent;
 

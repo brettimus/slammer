@@ -2536,9 +2536,7 @@ class Slammer {
   }
 
   specialRetreat(newIndex) {
-    console.log('special retreat to ' + newIndex + ' from ' + this.curr);
-
-    // 1. inject contents of newIndex into Next slide
+    // 1. inject contents of newIndex into Prev slide
     let newContent = this.slides[newIndex].innerHTML;
     this.prevSlide.innerHTML = newContent;
 
