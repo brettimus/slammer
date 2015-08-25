@@ -42,6 +42,9 @@ main
     user-drag: none
     -moz-user-select: none
     -webkit-user-drag: none
+  @supports (-moz-user-select: none)
+    > img
+      pointer-events: none
 
 .slam-nav-wrap
   position: absolute
