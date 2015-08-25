@@ -44,8 +44,9 @@ main {
   text-align: center;
   -webkit-user-drag: none;
   user-drag: none;
+  background-color: #666;
 }
-/* line 38, ../../src/sass/main.sass */
+/* line 39, ../../src/sass/main.sass */
 .slide > img {
   width: 100%;
   height: auto;
@@ -53,7 +54,7 @@ main {
   user-drag: none;
 }
 
-/* line 44, ../../src/sass/main.sass */
+/* line 45, ../../src/sass/main.sass */
 .slam-nav-wrap {
   position: absolute;
   left: 0;
@@ -62,7 +63,7 @@ main {
   text-align: center;
 }
 
-/* line 51, ../../src/sass/main.sass */
+/* line 52, ../../src/sass/main.sass */
 .slam-nav-item {
   display: inline-block;
   width: 2rem;
@@ -74,16 +75,16 @@ main {
   transition-property: border-width, background-color;
   transition-duration: 0.2s;
 }
-/* line 61, ../../src/sass/main.sass */
+/* line 62, ../../src/sass/main.sass */
 .slam-nav-item:not(.slam-nav-active) {
   cursor: pointer;
 }
-/* line 63, ../../src/sass/main.sass */
+/* line 64, ../../src/sass/main.sass */
 .slam-nav-item:not(.slam-nav-active):hover {
   border-width: 3px;
 }
 
-/* line 66, ../../src/sass/main.sass */
+/* line 67, ../../src/sass/main.sass */
 .slam-nav-active {
   background-color: rgba(255, 255, 255, 0.6);
 }

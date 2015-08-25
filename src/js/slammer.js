@@ -126,15 +126,16 @@ class Slammer {
 
   transformTo(currIndex, nextIndex, time) {
     let currTransformPos = this.newSlammer.style.transform;
-    let px = parseFloat(currTransformPos.split('(')[1].split('px')[0]);
+    let currTransformContent = parseFloat(currTransformPos.split('(')[1].split('%')[0]);
+
     let newTransformPos = 0;
 
     if (time <= 0) {
-      newTransformPos = this.newSlammer.offsetWidth / -3;
+      newTransformPos = (1/3)*-100;
     } else if (nextIndex > currIndex || currIndex === this.slides.length - 1 && nextIndex === -1) {
-      newTransformPos = px + this.newSlammer.offsetWidth / -3;
+      newTransformPos = currTransformContent + (1/3)*-100;
     } else {
-      newTransformPos = px + this.newSlammer.offsetWidth / 3;
+      newTransformPos = currTransformContent + (1/3)*100;
     }
 
     if (time > 0){
@@ -152,7 +153,7 @@ class Slammer {
       this.updateNav();
     }
 
-    this.newSlammer.style.transform = "translateX(" + newTransformPos + "px)";
+    this.newSlammer.style.transform = "translateX(" + newTransformPos + "%)";
   }
 
   acceptHammers() {
@@ -222,7 +223,7 @@ class Slammer {
 
     this.wrapper.appendChild(this.newSlammer);
     this.newSlammer.classList.add('slam-items');
-    this.newSlammer.style.transform = "translateX(0px)";
+    this.newSlammer.style.transform = "translateX(0%)";
 
     this.transformTo(-1, 0, -1);
     this.acceptHammers();
