@@ -2672,6 +2672,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         return;
                     }
 
+                    console.log(this.slides);
+
                     // create new, three-slide slammer out of curr, prev, and next
                     this.newSlammer = document.createElement('div');
                     this.prevSlide = document.createElement('div');
@@ -2682,13 +2684,27 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var origSlideCopies = [];
 
                     for (var _i3 = 0; _i3 < this.slides.length; _i3++) {
-                        origSlideCopies.push(this.slides[_i3].innerHTML);
+                        // origSlideCopies.push(this.slides[i].innerHTML);
+                        var curr = this.slides[_i3];
+                        var newSlide = {
+                            "content": curr.innerHTML,
+                            "classes": curr.classList,
+                            "style": curr.style
+                        };
+                        console.log(newSlide);
+                        origSlideCopies.push(newSlide);
                     }
 
                     for (var _i4 = 0; _i4 < slides.length; _i4++) {
-                        slides[_i4].classList.add('slam-item');
+                        // slides[i].classList.add('slam-item');
                         this.newSlammer.appendChild(slides[_i4]);
-                        slides[_i4].innerHTML += origSlideCopies[_i4 - 1 >= 0 ? _i4 - 1 : origSlideCopies.length - 1];
+                        var slideIndexToUse = _i4 - 1 >= 0 ? _i4 - 1 : origSlideCopies.length - 1;
+                        slides[_i4].innerHTML = origSlideCopies[slideIndexToUse].content;
+                        for (var j = 0; j < origSlideCopies[slideIndexToUse].classes.length; j++) {
+                            slides[_i4].classList.add(origSlideCopies[slideIndexToUse].classes[j]);
+                        }
+                        // slides[i].classList += origSlideCopies[slideIndexToUse].classes;
+                        // slides[i].style = origSlideCopies[slideIndexToUse.style];
                     }
 
                     var realWrapper = this.wrapper.parentNode;

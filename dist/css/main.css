@@ -1,9 +1,9 @@
 /* line 1, ../../src/sass/main.sass */
 body {
   font-family: sans-serif;
-  color: #333333;
+  color: #333;
   margin: 0;
-  background-color: #333333;
+  background-color: #333;
   padding: 2rem;
 }
 
@@ -36,7 +36,7 @@ main {
 }
 
 /* line 30, ../../src/sass/main.sass */
-.slam-item {
+.slide {
   display: inline-block;
   width: 33.33333%;
   height: 100%;
@@ -46,7 +46,7 @@ main {
   user-drag: none;
 }
 /* line 38, ../../src/sass/main.sass */
-.slam-item > img {
+.slide > img {
   width: 100%;
   height: auto;
   -webkit-user-drag: none;

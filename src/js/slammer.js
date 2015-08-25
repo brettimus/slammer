@@ -181,6 +181,8 @@ class Slammer {
       return;
     }
 
+    console.log(this.slides);
+
     // create new, three-slide slammer out of curr, prev, and next
     this.newSlammer = document.createElement('div');
     this.prevSlide = document.createElement('div');
@@ -191,13 +193,27 @@ class Slammer {
     let origSlideCopies = [];
 
     for (let i = 0; i < this.slides.length; i++) {
-      origSlideCopies.push(this.slides[i].innerHTML);
+      // origSlideCopies.push(this.slides[i].innerHTML);
+      let curr = this.slides[i];
+      let newSlide = {
+        "content": curr.innerHTML,
+        "classes": curr.classList,
+        "style": curr.style
+      };
+      console.log(newSlide);
+      origSlideCopies.push(newSlide);
     }
 
     for (let i = 0; i < slides.length; i++) {
-      slides[i].classList.add('slam-item');
+      // slides[i].classList.add('slam-item');
       this.newSlammer.appendChild(slides[i]);
-      slides[i].innerHTML += origSlideCopies[i - 1 >= 0 ? i - 1 : origSlideCopies.length - 1];
+      let slideIndexToUse = i - 1 >= 0 ? i - 1 : origSlideCopies.length - 1;
+      slides[i].innerHTML = origSlideCopies[slideIndexToUse].content;
+      for (let j = 0; j < origSlideCopies[slideIndexToUse].classes.length; j++) {
+        slides[i].classList.add(origSlideCopies[slideIndexToUse].classes[j]);
+      }
+      // slides[i].classList += origSlideCopies[slideIndexToUse].classes;
+      // slides[i].style = origSlideCopies[slideIndexToUse.style];
     }
 
     const realWrapper = this.wrapper.parentNode;
@@ -229,5 +245,5 @@ window.onload = function() {
 
   for (let i = 0; i < slammers.length; i++) {
     let slammer = new Slammer(slammers[i]);
-  }  
+  }
 }
