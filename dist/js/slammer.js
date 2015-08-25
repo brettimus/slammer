@@ -2630,10 +2630,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     if (time > 0) {
                         locked = true;
                         this.newSlammer.classList.add('slammer-transitioning');
-                        this.newSlammer.style.WebkitTransition = 'transform ' + transitionTime / 1000 + 's';
+                        this.newSlammer.style.transition = 'transform ' + transitionTime / 1000 + 's';
+                        this.newSlammer.style.WebkitTransition = '-webkit-transform ' + transitionTime / 1000 + 's';
                         window.setTimeout(function () {
                             _this4.newSlammer.classList.remove('slammer-transitioning');
-                            _this4.newSlammer.style.WebkitTransition = 'transform ' + 0 + 's';
+                            _this4.newSlammer.style.transition = 'transform ' + 0 + 's';
+                            _this4.newSlammer.style.WebkitTransition = '-webkit-transform ' + 0 + 's';
                             _this4.injectNewSurroundingSlides(currIndex, nextIndex);
                             locked = false;
                         }, transitionTime);
@@ -2642,6 +2644,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         this.updateNav();
                     }
 
+                    this.newSlammer.style.WebkitTransform = "translateX(" + newTransformPos + "%)";
                     this.newSlammer.style.transform = "translateX(" + newTransformPos + "%)";
                 }
             }, {
@@ -2714,6 +2717,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     this.wrapper.appendChild(this.newSlammer);
                     this.newSlammer.classList.add('slam-items');
+                    this.newSlammer.style.WebkitTransform = "translateX(0%)";
                     this.newSlammer.style.transform = "translateX(0%)";
 
                     this.transformTo(-1, 0, -1);

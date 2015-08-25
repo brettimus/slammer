@@ -2607,10 +2607,12 @@ class Slammer {
     if (time > 0){
       locked = true;
       this.newSlammer.classList.add('slammer-transitioning');
-      this.newSlammer.style.WebkitTransition = 'transform ' + transitionTime/1000 + 's';
+      this.newSlammer.style.transition = 'transform ' + transitionTime/1000 + 's';
+      this.newSlammer.style.WebkitTransition = '-webkit-transform ' + transitionTime/1000 + 's';
       window.setTimeout(() => {
         this.newSlammer.classList.remove('slammer-transitioning');
-        this.newSlammer.style.WebkitTransition = 'transform ' + 0 + 's';
+        this.newSlammer.style.transition = 'transform ' + 0 + 's';
+        this.newSlammer.style.WebkitTransition = '-webkit-transform ' + 0 + 's';
         this.injectNewSurroundingSlides(currIndex, nextIndex);
         locked = false;
       }, transitionTime);
@@ -2619,6 +2621,7 @@ class Slammer {
       this.updateNav();
     }
 
+    this.newSlammer.style.WebkitTransform = "translateX(" + newTransformPos + "%)";
     this.newSlammer.style.transform = "translateX(" + newTransformPos + "%)";
   }
 
@@ -2689,6 +2692,7 @@ class Slammer {
 
     this.wrapper.appendChild(this.newSlammer);
     this.newSlammer.classList.add('slam-items');
+    this.newSlammer.style.WebkitTransform = "translateX(0%)";
     this.newSlammer.style.transform = "translateX(0%)";
 
     this.transformTo(-1, 0, -1);
