@@ -1,6 +1,6 @@
 {
   "name": "slammer",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A vanillaJS slider that uses Hammer.js for touch events.",
   "main": "index.js",
   "scripts": {
