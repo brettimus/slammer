@@ -181,8 +181,6 @@ class Slammer {
       return;
     }
 
-    console.log(this.slides);
-
     // create new, three-slide slammer out of curr, prev, and next
     this.newSlammer = document.createElement('div');
     this.prevSlide = document.createElement('div');
@@ -193,27 +191,27 @@ class Slammer {
     let origSlideCopies = [];
 
     for (let i = 0; i < this.slides.length; i++) {
-      // origSlideCopies.push(this.slides[i].innerHTML);
       let curr = this.slides[i];
       let newSlide = {
         "content": curr.innerHTML,
         "classes": curr.classList,
         "style": curr.style
       };
-      console.log(newSlide);
       origSlideCopies.push(newSlide);
     }
 
     for (let i = 0; i < slides.length; i++) {
-      // slides[i].classList.add('slam-item');
       this.newSlammer.appendChild(slides[i]);
       let slideIndexToUse = i - 1 >= 0 ? i - 1 : origSlideCopies.length - 1;
       slides[i].innerHTML = origSlideCopies[slideIndexToUse].content;
       for (let j = 0; j < origSlideCopies[slideIndexToUse].classes.length; j++) {
         slides[i].classList.add(origSlideCopies[slideIndexToUse].classes[j]);
       }
-      // slides[i].classList += origSlideCopies[slideIndexToUse].classes;
-      // slides[i].style = origSlideCopies[slideIndexToUse.style];
+      for (let prop in origSlideCopies[slideIndexToUse].style) {
+        if (origSlideCopies[slideIndexToUse].style[prop] && origSlideCopies[slideIndexToUse].style[prop].length > 0) {
+          slides[i].style[prop] = origSlideCopies[slideIndexToUse].style[prop];
+        }
+      }
     }
 
     const realWrapper = this.wrapper.parentNode;
