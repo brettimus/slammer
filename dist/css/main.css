@@ -44,7 +44,7 @@ main {
   text-align: center;
   background-color: #666;
 }
-/* line 40, ../../src/sass/main.sass */
+/* line 37, ../../src/sass/main.sass */
 .slide > img {
   width: 100%;
   height: auto;
@@ -55,7 +55,7 @@ main {
   -webkit-user-drag: none;
 }
 
-/* line 49, ../../src/sass/main.sass */
+/* line 46, ../../src/sass/main.sass */
 .slam-nav-wrap {
   position: absolute;
   left: 0;
@@ -64,7 +64,7 @@ main {
   text-align: center;
 }
 
-/* line 56, ../../src/sass/main.sass */
+/* line 53, ../../src/sass/main.sass */
 .slam-nav-item {
   display: inline-block;
   width: 2rem;
@@ -76,16 +76,16 @@ main {
   transition-property: border-width, background-color;
   transition-duration: 0.2s;
 }
-/* line 66, ../../src/sass/main.sass */
+/* line 63, ../../src/sass/main.sass */
 .slam-nav-item:not(.slam-nav-active) {
   cursor: pointer;
 }
-/* line 68, ../../src/sass/main.sass */
+/* line 65, ../../src/sass/main.sass */
 .slam-nav-item:not(.slam-nav-active):hover {
   border-width: 3px;
 }
 
-/* line 71, ../../src/sass/main.sass */
+/* line 68, ../../src/sass/main.sass */
 .slam-nav-active {
   background-color: rgba(255, 255, 255, 0.6);
 }
