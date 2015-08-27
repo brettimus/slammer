@@ -2637,6 +2637,11 @@ class Slammer {
         }
       }
     });
+    hammer.on('tap', (e) => {
+      if (!locked) {
+        this.advance();
+      }
+    })
   }
 
 

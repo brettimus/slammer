@@ -2664,6 +2664,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                             }
                         }
                     });
+                    hammer.on('tap', function (e) {
+                        if (!locked) {
+                            _this5.advance();
+                        }
+                    });
                 }
 
                 /*
