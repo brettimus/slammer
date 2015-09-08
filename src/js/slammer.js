@@ -12,7 +12,12 @@ let locked = true;
 class Slammer {
   constructor(wrapperElt) {
     this.wrapper = wrapperElt;
-    this.slides = this.wrapper.children;
+    this.slides = [];
+
+    for (let i = 0; i < this.wrapper.children.length; i++) {
+      this.slides.push(this.wrapper.children[i]);
+    }
+
     this.curr = 0;
     this.prev = this.slides.length - 1;
     this.next = 1;
@@ -186,7 +191,6 @@ class Slammer {
   slam() {
 
     if (this.slides.length < 2) {
-      console.debug('Error (Slammer): too few elements to create slider.');
       return;
     }
 

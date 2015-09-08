@@ -2482,7 +2482,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 _classCallCheck(this, Slammer);
 
                 this.wrapper = wrapperElt;
-                this.slides = this.wrapper.children;
+                this.slides = [];
+
+                for (var _i = 0; _i < this.wrapper.children.length; _i++) {
+                    this.slides.push(this.wrapper.children[_i]);
+                }
+
                 this.curr = 0;
                 this.prev = this.slides.length - 1;
                 this.next = 1;
@@ -2505,22 +2510,22 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     var navWrap = document.createElement('nav');
 
-                    var _loop = function (_i) {
+                    var _loop = function (_i2) {
                         var slideElt = document.createElement('div');
                         slideElt.classList.add('slam-nav-item');
                         navWrap.appendChild(slideElt);
                         slideElt.addEventListener('click', function () {
                             if (!locked) {
-                                if (_i !== _this.curr) {
+                                if (_i2 !== _this.curr) {
                                     // if the new slide is only offset by 1 from the current one,
                                     // then we can proceed as usual.
-                                    if (Math.abs(_this.curr - _i) <= 1) {
-                                        _this.transformTo(_this.curr, _i, transitionTime);
+                                    if (Math.abs(_this.curr - _i2) <= 1) {
+                                        _this.transformTo(_this.curr, _i2, transitionTime);
                                     } else {
-                                        if (_i > _this.curr) {
-                                            _this.specialAdvance(_i);
+                                        if (_i2 > _this.curr) {
+                                            _this.specialAdvance(_i2);
                                         } else {
-                                            _this.specialRetreat(_i);
+                                            _this.specialRetreat(_i2);
                                         }
                                     }
                                 }
@@ -2528,8 +2533,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         });
                     };
 
-                    for (var _i = 0; _i < this.slides.length; _i++) {
-                        _loop(_i);
+                    for (var _i2 = 0; _i2 < this.slides.length; _i2++) {
+                        _loop(_i2);
                     }
 
                     navWrap.classList.add('slam-nav-wrap');
@@ -2569,11 +2574,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 value: function updateNav() {
                     var navItems = document.getElementsByClassName('slam-nav-item');
 
-                    for (var _i2 = 0; _i2 < navItems.length; _i2++) {
-                        if (navItems[_i2].classList.contains('slam-nav-active')) {
-                            navItems[_i2].classList.remove('slam-nav-active');
-                        } else if (_i2 === this.curr) {
-                            navItems[_i2].classList.add('slam-nav-active');
+                    for (var _i3 = 0; _i3 < navItems.length; _i3++) {
+                        if (navItems[_i3].classList.contains('slam-nav-active')) {
+                            navItems[_i3].classList.remove('slam-nav-active');
+                        } else if (_i3 === this.curr) {
+                            navItems[_i3].classList.add('slam-nav-active');
                         }
                     }
                 }
@@ -2679,7 +2684,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 value: function slam() {
 
                     if (this.slides.length < 2) {
-                        console.debug('Error (Slammer): too few elements to create slider.');
                         return;
                     }
 
@@ -2692,8 +2696,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var slides = [this.prevSlide, this.currSlide, this.nextSlide];
                     var origSlideCopies = [];
 
-                    for (var _i3 = 0; _i3 < this.slides.length; _i3++) {
-                        var curr = this.slides[_i3];
+                    for (var _i4 = 0; _i4 < this.slides.length; _i4++) {
+                        var curr = this.slides[_i4];
                         var newSlide = {
                             "content": curr.innerHTML,
                             "classes": curr.classList,
@@ -2702,16 +2706,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         origSlideCopies.push(newSlide);
                     }
 
-                    for (var _i4 = 0; _i4 < slides.length; _i4++) {
-                        this.newSlammer.appendChild(slides[_i4]);
-                        var slideIndexToUse = _i4 - 1 >= 0 ? _i4 - 1 : origSlideCopies.length - 1;
-                        slides[_i4].innerHTML = origSlideCopies[slideIndexToUse].content;
+                    for (var _i5 = 0; _i5 < slides.length; _i5++) {
+                        this.newSlammer.appendChild(slides[_i5]);
+                        var slideIndexToUse = _i5 - 1 >= 0 ? _i5 - 1 : origSlideCopies.length - 1;
+                        slides[_i5].innerHTML = origSlideCopies[slideIndexToUse].content;
                         for (var j = 0; j < origSlideCopies[slideIndexToUse].classes.length; j++) {
-                            slides[_i4].classList.add(origSlideCopies[slideIndexToUse].classes[j]);
+                            slides[_i5].classList.add(origSlideCopies[slideIndexToUse].classes[j]);
                         }
                         for (var prop in origSlideCopies[slideIndexToUse].style) {
                             if (origSlideCopies[slideIndexToUse].style[prop] && origSlideCopies[slideIndexToUse].style[prop].length > 0) {
-                                slides[_i4].style[prop] = origSlideCopies[slideIndexToUse].style[prop];
+                                slides[_i5].style[prop] = origSlideCopies[slideIndexToUse].style[prop];
                             }
                         }
                     }
@@ -2743,8 +2747,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
         var slammers = document.getElementsByClassName('slam-items');
 
-        for (var _i5 = 0; _i5 < slammers.length; _i5++) {
-            var slammer = new Slammer(slammers[_i5]);
+        for (var _i6 = 0; _i6 < slammers.length; _i6++) {
+            var slammer = new Slammer(slammers[_i6]);
         }
     }, { "hammerjs": 1 }] }, {}, [2]);
 //# sourceMappingURL=slammer.js.map
