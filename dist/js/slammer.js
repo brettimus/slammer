@@ -2498,6 +2498,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 this.currSlide = null;
                 this.nextSlide = null;
 
+                this.slamNav = null;
+
                 this.slam();
             }
 
@@ -2538,7 +2540,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     }
 
                     navWrap.classList.add('slam-nav-wrap');
-                    this.wrapper.appendChild(navWrap);
+
+                    this.slamNav = navWrap;
+
+                    this.wrapper.appendChild(this.slamNav);
                     this.updateNav();
                 }
             }, {
@@ -2572,7 +2577,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "updateNav",
                 value: function updateNav() {
-                    var navItems = document.getElementsByClassName('slam-nav-item');
+                    var navItems = this.slamNav.children;
 
                     for (var _i3 = 0; _i3 < navItems.length; _i3++) {
                         if (navItems[_i3].classList.contains('slam-nav-active')) {
@@ -2648,7 +2653,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         }, transitionTime);
                     } else if (time < 0) {
                         this.curr = 0;
-                        this.updateNav();
                     }
 
                     this.newSlammer.style.WebkitTransform = "translateX(" + newTransformPos + "%)";

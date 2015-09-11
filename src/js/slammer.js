@@ -28,6 +28,8 @@ class Slammer {
     this.currSlide = null;
     this.nextSlide = null;
 
+    this.slamNav = null;
+
     this.slam();
   }
 
@@ -58,7 +60,10 @@ class Slammer {
     }
 
     navWrap.classList.add('slam-nav-wrap');
-    this.wrapper.appendChild(navWrap);
+
+    this.slamNav = navWrap;
+
+    this.wrapper.appendChild(this.slamNav);
     this.updateNav();
   }
 
@@ -86,7 +91,7 @@ class Slammer {
   }
 
   updateNav() {
-    let navItems = document.getElementsByClassName('slam-nav-item');
+    let navItems = this.slamNav.children;
 
     for (let i = 0; i < navItems.length; i++) {
       if (navItems[i].classList.contains('slam-nav-active')) {
@@ -157,7 +162,6 @@ class Slammer {
       }, transitionTime);
     } else if (time < 0){
       this.curr = 0;
-      this.updateNav();
     }
 
     this.newSlammer.style.WebkitTransform = "translateX(" + newTransformPos + "%)";
