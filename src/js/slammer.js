@@ -1,5 +1,15 @@
 "use strict";
 
+/*
+ ON CONST:
+  This declaration creates a constant that can be global or local to the function in which it is declared. 
+  Constants are block-scoped. 
+  The value of a constant cannot change through re-assignment, and a constant cannot be re-declared. 
+  An initializer for a constant is required. 
+  A constant cannot share its name with a function or a variable in the same scope.
+ */
+
+const extend = require('./utils').extend;
 const Hammer = require('hammerjs');
 
 const activeSlideClass = "slam-item-active";
@@ -7,16 +17,28 @@ const slidePositions = ["prev", "center", "next"];
 
 const transitionTime = 450;
 
-let locked = true;
+// let locked = true;
 
 class Slammer {
-  constructor(wrapperElt) {
-    this.wrapper = wrapperElt;
-    this.slides = [];
+
+  constructor(wrapperElt, options) {
+
+    // NYU (BB)
+    let defaults = {
+      activeSlideClass: "slam-item-active",
+      transitionTime: 450,
+    }
+    options = extend({}, defaults, options);
+
+
+    this.wrapper = wrapperElt;  // The wrapper element
+    this.slides = [];           // 
 
     for (let i = 0; i < this.wrapper.children.length; i++) {
       this.slides.push(this.wrapper.children[i]);
     }
+
+    this.locked = true;
 
     this.curr = 0;
     this.prev = this.slides.length - 1;
@@ -28,6 +50,7 @@ class Slammer {
     this.currSlide = null;
     this.nextSlide = null;
 
+
     this.slamNav = null;
 
     this.slam();
@@ -37,11 +60,13 @@ class Slammer {
     let navWrap = document.createElement('nav');
 
     for (let i = 0; i < this.slides.length; i++) {
+
       let slideElt = document.createElement('div');
+
       slideElt.classList.add('slam-nav-item');
       navWrap.appendChild(slideElt);
       slideElt.addEventListener('click', () => {
-        if (!locked) {
+        if (!this.locked) {
           if (i !== this.curr) {
             // if the new slide is only offset by 1 from the current one,
             // then we can proceed as usual.
@@ -149,7 +174,7 @@ class Slammer {
     }
 
     if (time > 0){
-      locked = true;
+      this.locked = true;
       this.newSlammer.classList.add('slammer-transitioning');
       this.newSlammer.style.transition = 'transform ' + transitionTime/1000 + 's';
       this.newSlammer.style.WebkitTransition = '-webkit-transform ' + transitionTime/1000 + 's';
@@ -158,7 +183,7 @@ class Slammer {
         this.newSlammer.style.transition = 'transform ' + 0 + 's';
         this.newSlammer.style.WebkitTransition = '-webkit-transform ' + 0 + 's';
         this.injectNewSurroundingSlides(currIndex, nextIndex);
-        locked = false;
+        this.locked = false;
       }, transitionTime);
     } else if (time < 0){
       this.curr = 0;
@@ -171,7 +196,7 @@ class Slammer {
   acceptHammers() {
     let hammer = new Hammer(this.newSlammer);
     hammer.on('swipe', (e) => {
-      if (!locked) {
+      if (!this.locked) {
         if (e.direction === 2) {
           this.advance();
         }
@@ -181,17 +206,14 @@ class Slammer {
       }
     });
     hammer.on('tap', (e) => {
-      if (!locked) {
+      if (!this.locked) {
         this.advance();
       }
     })
   }
 
 
-  /*
-  Initializes a new slammer.
-
-  */
+  /* Initializes a new slammer. */
   slam() {
 
     if (this.slides.length < 2) {
@@ -247,17 +269,10 @@ class Slammer {
 
     this.createNav();
 
-    locked = false;
+    this.locked = false;
 
     return;
   }
-
-
 }
 
-// Create Slammers out of all elts with this class.
-const slammers = document.getElementsByClassName('slam-items');
-
-for (let i = 0; i < slammers.length; i++) {
-  let slammer = new Slammer(slammers[i]);
-}
+module.exports = Slammer;
