@@ -21,7 +21,7 @@ require('load-grunt-tasks')(grunt);
     browserify: {
       client: {
         src: ['./src/js/index.js'],
-        dest: './src/js/comp.js'
+        dest: './src/js/_tmp.js'
       }
     },
     babel: {
@@ -30,7 +30,7 @@ require('load-grunt-tasks')(grunt);
       },
       dist: {
         files: {
-          'dist/js/slammer.js': 'src/js/comp.js'
+          'dist/js/slammer.js': 'src/js/_tmp.js'
         }
       }
     },

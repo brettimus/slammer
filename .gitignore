@@ -2,3 +2,4 @@ node_modules
 .sass-cache
 *.js.map
 .DS_Store
+_tmp.js*
