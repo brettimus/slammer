@@ -5,10 +5,10 @@ require('load-grunt-tasks')(grunt);
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     watch: {
-		 	compass: {
-	    	files: ['./src/sass/*.sass'],
-	    	tasks: ['compass']
-	    },
+      compass: {
+        files: ['./src/sass/*.sass'],
+        tasks: ['compass']
+      },
       browserify: {
         files: ['./src/js/*.js'],
         tasks: ['browserify']
@@ -20,7 +20,7 @@ require('load-grunt-tasks')(grunt);
 		},
     browserify: {
       client: {
-        src: ['./src/js/slammer.js'],
+        src: ['./src/js/index.js'],
         dest: './src/js/comp.js'
       }
     },
@@ -34,14 +34,14 @@ require('load-grunt-tasks')(grunt);
         }
       }
     },
-   	compass: {
-	    dev: {
+    compass: {
+      dev: {
         options: {
           sassDir: ['src/sass'],
           cssDir: ['dist/css'],
-		  		environment: 'development'
+          environment: 'development'
 				}
-	    }
+      }
     }
   });
 

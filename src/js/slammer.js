@@ -29,7 +29,6 @@ class Slammer {
     }
     this.options = extend({}, defaults, options);
 
-
     this.wrapper = wrapperElt;  // The wrapper element
     this.slides = [];           // 
 
@@ -48,7 +47,6 @@ class Slammer {
     this.prevSlide = null;
     this.currSlide = null;
     this.nextSlide = null;
-
 
     this.slamNav = null;
 
@@ -69,10 +67,21 @@ class Slammer {
     for (let i = 0; i < navItems.length; i++) {
       if (navItems[i].classList.contains('slam-nav-active')) {
         navItems[i].classList.remove('slam-nav-active');
-      } else if (i === this.curr) {
+      } 
+      else if (i === this.curr) {
         navItems[i].classList.add('slam-nav-active');
       }
     }
+  }
+
+  relativeTransition(offset) {
+    if (offset === 0) return;
+
+    let currentIndex = this.curr;
+    let nextIndex    = currentIndex + offset;
+
+    if (offset < 0) this.specialRetreat(nextIndex);
+    if (offset > 0) this.specialAdvance(nextIndex);
   }
 
   specialAdvance(newIndex) {
@@ -82,8 +91,8 @@ class Slammer {
 
     // 2. transformTo(nextIndex)
     window.setTimeout(() => {
-      this.transformTo(this.curr, newIndex, transitionTime);
-    }, 10);
+      this.transformTo(this.curr, newIndex, this.options.transitionTime);
+    }, 0);
 
   }
 
@@ -95,7 +104,7 @@ class Slammer {
     // 2. transformTo(nextIndex)
     window.setTimeout(() => {
       this.transformTo(this.curr, newIndex, this.options.transitionTime);
-    }, 10);
+    }, 0);
   }
 
   retreat() {

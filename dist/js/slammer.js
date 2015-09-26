@@ -2466,27 +2466,124 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }
         })(window, document, 'Hammer');
     }, {}], 2: [function (require, module, exports) {
+        var Slammer = require("./slammer");
+
+        // Create Slammers out of all elts with this class.
+        var slammers = document.getElementsByClassName('slam-items');
+
+        for (var _i = 0; _i < slammers.length; _i++) {
+            var slammer = new Slammer(slammers[_i]);
+        }
+    }, { "./slammer": 4 }], 3: [function (require, module, exports) {
+
+        var extend = require("./utils").extend;
+
+        var SlammerNav = (function () {
+            function SlammerNav(slammer, options) {
+                _classCallCheck(this, SlammerNav);
+
+                var defaults = {
+                    slideItemClass: 'slam-nav-item'
+                };
+
+                var modOptions = extend({}, defaults, options);
+                var slides = slammer.slides;
+
+                var navWrap = document.createElement('nav');
+                navWrap.classList.add('slam-nav-wrap');
+
+                // Instead of binding click handler to each list item,
+                // we could capture events by bubbling to the main nav.
+                // (Not wholly necessary, but an option.)
+                var clickHandler = this.navEltHandler.bind(slammer);
+
+                slides.forEach(function (slide, i) {
+                    var slideElt = document.createElement('div');
+
+                    slideElt.classList.add(modOptions.slideItemClass);
+                    setSlideEltIndex(slideElt, i);
+
+                    navWrap.appendChild(slideElt);
+
+                    slideElt.addEventListener('click', clickHandler);
+                });
+
+                this.navWrap = navWrap;
+            }
+
+            // Helpers
+
+            _createClass(SlammerNav, [{
+                key: "navEltHandler",
+                value: function navEltHandler(evt) {
+                    // `this` (the context) is an instance of Slammer
+                    // that's why you see the use of `.bind` when the `clickHandler` is created upon unitialization
+                    // ... Not ideal, but it works for now!
+
+                    if (this.locked) return;
+                    var slideElt = evt.target || evt.srcElement;
+                    var currentIndex = this.curr;
+                    var nextIndex = getSlideEltIndex(slideElt);
+                    var offset = nextIndex - currentIndex;
+
+                    this.relativeTransition(offset);
+                }
+            }]);
+
+            return SlammerNav;
+        })();
+
+        function setSlideEltIndex(slideElt, i) {
+            if (!slideElt.dataset) {
+                slideElt.dataset = {}; // This is potentially very :poop:
+            }
+            slideElt.dataset.slammerIndex = i;
+        }
+        function getSlideEltIndex(slideElt) {
+            return +slideElt.dataset.slammerIndex; // the `+` is to coerce the index an integer. otherwise, it's returned as a string
+        }
+
+        module.exports = SlammerNav;
+    }, { "./utils": 5 }], 4: [function (require, module, exports) {
         "use strict";
 
+        /*
+         ON CONST:
+          This declaration creates a constant that can be global or local to the function in which it is declared. 
+          Constants are block-scoped. 
+          The value of a constant cannot change through re-assignment, and a constant cannot be re-declared. 
+          An initializer for a constant is required. 
+          A constant cannot share its name with a function or a variable in the same scope.
+         */
+
+        var extend = require('./utils').extend;
         var Hammer = require('hammerjs');
+        var SlammerNav = require("./nav");
 
         var activeSlideClass = "slam-item-active";
         var slidePositions = ["prev", "center", "next"];
 
         var transitionTime = 450;
 
-        var locked = true;
-
         var Slammer = (function () {
-            function Slammer(wrapperElt) {
+            function Slammer(wrapperElt, options) {
                 _classCallCheck(this, Slammer);
 
-                this.wrapper = wrapperElt;
-                this.slides = [];
+                // NYU (BB)
+                var defaults = {
+                    activeSlideClass: "slam-item-active",
+                    transitionTime: 450
+                };
+                this.options = extend({}, defaults, options);
 
-                for (var _i = 0; _i < this.wrapper.children.length; _i++) {
-                    this.slides.push(this.wrapper.children[_i]);
+                this.wrapper = wrapperElt; // The wrapper element
+                this.slides = []; //
+
+                for (var _i2 = 0; _i2 < this.wrapper.children.length; _i2++) {
+                    this.slides.push(this.wrapper.children[_i2]);
                 }
+
+                this.locked = true;
 
                 this.curr = 0;
                 this.prev = this.slides.length - 1;
@@ -2503,82 +2600,20 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 this.slam();
             }
 
-            // Create Slammers out of all elts with this class.
-
             _createClass(Slammer, [{
                 key: "createNav",
                 value: function createNav() {
-                    var _this = this;
+                    var options = this.options;
+                    var nav = new SlammerNav(this, options);
 
-                    var navWrap = document.createElement('nav');
-
-                    var _loop = function (_i2) {
-                        var slideElt = document.createElement('div');
-                        slideElt.classList.add('slam-nav-item');
-                        navWrap.appendChild(slideElt);
-                        slideElt.addEventListener('click', function () {
-                            if (!locked) {
-                                if (_i2 !== _this.curr) {
-                                    // if the new slide is only offset by 1 from the current one,
-                                    // then we can proceed as usual.
-                                    if (Math.abs(_this.curr - _i2) <= 1) {
-                                        _this.transformTo(_this.curr, _i2, transitionTime);
-                                    } else {
-                                        if (_i2 > _this.curr) {
-                                            _this.specialAdvance(_i2);
-                                        } else {
-                                            _this.specialRetreat(_i2);
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                    };
-
-                    for (var _i2 = 0; _i2 < this.slides.length; _i2++) {
-                        _loop(_i2);
-                    }
-
-                    navWrap.classList.add('slam-nav-wrap');
-
-                    this.slamNav = navWrap;
-
+                    this.slamNav = nav.navWrap;
                     this.wrapper.appendChild(this.slamNav);
                     this.updateNav();
-                }
-            }, {
-                key: "specialAdvance",
-                value: function specialAdvance(newIndex) {
-                    var _this2 = this;
-
-                    // 1. inject contents of newIndex into Next slide
-                    var newContent = this.slides[newIndex].innerHTML;
-                    this.nextSlide.innerHTML = newContent;
-
-                    // 2. transformTo(nextIndex)
-                    window.setTimeout(function () {
-                        _this2.transformTo(_this2.curr, newIndex, transitionTime);
-                    }, 10);
-                }
-            }, {
-                key: "specialRetreat",
-                value: function specialRetreat(newIndex) {
-                    var _this3 = this;
-
-                    // 1. inject contents of newIndex into Prev slide
-                    var newContent = this.slides[newIndex].innerHTML;
-                    this.prevSlide.innerHTML = newContent;
-
-                    // 2. transformTo(nextIndex)
-                    window.setTimeout(function () {
-                        _this3.transformTo(_this3.curr, newIndex, transitionTime);
-                    }, 10);
                 }
             }, {
                 key: "updateNav",
                 value: function updateNav() {
                     var navItems = this.slamNav.children;
-
                     for (var _i3 = 0; _i3 < navItems.length; _i3++) {
                         if (navItems[_i3].classList.contains('slam-nav-active')) {
                             navItems[_i3].classList.remove('slam-nav-active');
@@ -2588,18 +2623,57 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     }
                 }
             }, {
+                key: "relativeTransition",
+                value: function relativeTransition(offset) {
+                    if (offset === 0) return;
+
+                    var currentIndex = this.curr;
+                    var nextIndex = currentIndex + offset;
+
+                    if (offset < 0) this.specialRetreat(nextIndex);
+                    if (offset > 0) this.specialAdvance(nextIndex);
+                }
+            }, {
+                key: "specialAdvance",
+                value: function specialAdvance(newIndex) {
+                    var _this = this;
+
+                    // 1. inject contents of newIndex into Next slide
+                    var newContent = this.slides[newIndex].innerHTML;
+                    this.nextSlide.innerHTML = newContent;
+
+                    // 2. transformTo(nextIndex)
+                    window.setTimeout(function () {
+                        _this.transformTo(_this.curr, newIndex, _this.options.transitionTime);
+                    }, 0);
+                }
+            }, {
+                key: "specialRetreat",
+                value: function specialRetreat(newIndex) {
+                    var _this2 = this;
+
+                    // 1. inject contents of newIndex into Prev slide
+                    var newContent = this.slides[newIndex].innerHTML;
+                    this.prevSlide.innerHTML = newContent;
+
+                    // 2. transformTo(nextIndex)
+                    window.setTimeout(function () {
+                        _this2.transformTo(_this2.curr, newIndex, _this2.options.transitionTime);
+                    }, 0);
+                }
+            }, {
                 key: "retreat",
                 value: function retreat() {
                     var newIndex = this.curr - 1;
 
-                    this.transformTo(this.curr, newIndex, transitionTime);
+                    this.transformTo(this.curr, newIndex, this.options.transitionTime);
                 }
             }, {
                 key: "advance",
                 value: function advance() {
                     var newIndex = this.curr + 1;
 
-                    this.transformTo(this.curr, newIndex, transitionTime);
+                    this.transformTo(this.curr, newIndex, this.options.transitionTime);
                 }
             }, {
                 key: "injectNewSurroundingSlides",
@@ -2624,12 +2698,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "transformTo",
                 value: function transformTo(currIndex, nextIndex, time) {
-                    var _this4 = this;
+                    var _this3 = this;
 
                     var currTransformPos = this.newSlammer.style.transform;
                     var currTransformContent = parseFloat(currTransformPos.split('(')[1].split('%')[0]);
 
                     var newTransformPos = 0;
+
+                    var transitionTime = this.options.transitionTime;
 
                     if (time <= 0) {
                         newTransformPos = 1 / 3 * -100;
@@ -2640,16 +2716,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     }
 
                     if (time > 0) {
-                        locked = true;
+                        this.locked = true;
                         this.newSlammer.classList.add('slammer-transitioning');
                         this.newSlammer.style.transition = 'transform ' + transitionTime / 1000 + 's';
                         this.newSlammer.style.WebkitTransition = '-webkit-transform ' + transitionTime / 1000 + 's';
                         window.setTimeout(function () {
-                            _this4.newSlammer.classList.remove('slammer-transitioning');
-                            _this4.newSlammer.style.transition = 'transform ' + 0 + 's';
-                            _this4.newSlammer.style.WebkitTransition = '-webkit-transform ' + 0 + 's';
-                            _this4.injectNewSurroundingSlides(currIndex, nextIndex);
-                            locked = false;
+                            _this3.newSlammer.classList.remove('slammer-transitioning');
+                            _this3.newSlammer.style.transition = 'transform ' + 0 + 's';
+                            _this3.newSlammer.style.WebkitTransition = '-webkit-transform ' + 0 + 's';
+                            _this3.injectNewSurroundingSlides(currIndex, nextIndex);
+                            _this3.locked = false;
                         }, transitionTime);
                     } else if (time < 0) {
                         this.curr = 0;
@@ -2661,28 +2737,26 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "acceptHammers",
                 value: function acceptHammers() {
-                    var _this5 = this;
+                    var _this4 = this;
 
                     var hammer = new Hammer(this.newSlammer);
                     hammer.on('swipe', function (e) {
-                        if (!locked) {
+                        if (!_this4.locked) {
                             if (e.direction === 2) {
-                                _this5.advance();
+                                _this4.advance();
                             } else if (e.direction === 4) {
-                                _this5.retreat();
+                                _this4.retreat();
                             }
                         }
                     });
                     hammer.on('tap', function (e) {
-                        if (!locked) {
-                            _this5.advance();
+                        if (!_this4.locked) {
+                            _this4.advance();
                         }
                     });
                 }
 
-                /*
-                Initializes a new slammer.
-                 */
+                /* Initializes a new slammer. */
             }, {
                 key: "slam",
                 value: function slam() {
@@ -2740,7 +2814,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     this.createNav();
 
-                    locked = false;
+                    this.locked = false;
 
                     return;
                 }
@@ -2749,10 +2823,28 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             return Slammer;
         })();
 
-        var slammers = document.getElementsByClassName('slam-items');
+        module.exports = Slammer;
+    }, { "./nav": 3, "./utils": 5, "hammerjs": 1 }], 5: [function (require, module, exports) {
+        module.exports = {
+            extend: extend
+        };
 
-        for (var _i6 = 0; _i6 < slammers.length; _i6++) {
-            var slammer = new Slammer(slammers[_i6]);
+        /*
+         * My shitty replacement for Object.assign
+         */
+        function extend() {
+            if (!arguments.length) return;
+
+            var args = [].slice.call(arguments, 0);
+            var result = args.shift();
+
+            args.forEach(function (o) {
+                for (var prop in o) {
+                    if (o.hasOwnProperty(prop)) result[prop] = o[prop];
+                }
+            });
+
+            return result;
         }
-    }, { "hammerjs": 1 }] }, {}, [2]);
+    }, {}] }, {}, [2]);
 //# sourceMappingURL=slammer.js.map

@@ -18,7 +18,7 @@ class SlammerNav {
     // Instead of binding click handler to each list item, 
     // we could capture events by bubbling to the main nav.
     // (Not wholly necessary, but an option.)
-    let clickHandler = navEltHandler.bind(slammer);
+    let clickHandler = this.navEltHandler.bind(slammer);
 
     slides.forEach(function(slide, i) {
       let slideElt = document.createElement('div');
@@ -34,38 +34,32 @@ class SlammerNav {
 
     this.navWrap = navWrap;
   }
-}
 
-// The context here is an instance of Slammer
-// That's something I want to fix...
-function navEltHandler(evt) {
+  navEltHandler(evt) {
+    // `this` (the context) is an instance of Slammer
+    // that's why you see the use of `.bind` when the `clickHandler` is created upon unitialization
+    // ... Not ideal, but it works for now!
 
-  if (this.locked) return;
-  let slideElt       = evt.target || evt.srcElement;
-  let i              = getSlideEltIndex(slideElt);
-  let transitionTime = this.options.transitionTime;
-  if (i === this.curr) return;
+    if (this.locked) return;  
+    let slideElt       = evt.target || evt.srcElement;
+    let currentIndex   = this.curr;
+    let nextIndex      = getSlideEltIndex(slideElt);
+    let offset         = nextIndex - currentIndex;
 
-  // if the new slide is only offset by 1 from the current one,
-  // then we can proceed as usual.
-  if (Math.abs(this.curr - i) <= 1){
-    this.transformTo(this.curr, i, transitionTime);
-  } else {
-    if (i > this.curr) {
-      this.specialAdvance(i);
-    } else {
-      this.specialRetreat(i);
-    }
+    this.relativeTransition(offset);
   }
 }
 
+
 // Helpers
 function setSlideEltIndex(slideElt, i) {
-    slideElt.dataset = slideElt.dataset || {}; // This is a bad pattern but works in this case methinks...
+    if (!slideElt.dataset) {
+        slideElt.dataset = {}; // This is potentially very :poop:
+    }
     slideElt.dataset.slammerIndex = i;
 }
 function getSlideEltIndex(slideElt) {
-    return +slideElt.dataset.slammerIndex; // the `+` is to coerce it to an integer
+    return +slideElt.dataset.slammerIndex; // the `+` is to coerce the index an integer. otherwise, it's returned as a string
 }
 
 module.exports = SlammerNav; 

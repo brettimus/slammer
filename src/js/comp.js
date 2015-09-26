@@ -2464,25 +2464,121 @@ if (typeof define == TYPE_FUNCTION && define.amd) {
 })(window, document, 'Hammer');
 
 },{}],2:[function(require,module,exports){
+var Slammer = require("./slammer");
+
+// Create Slammers out of all elts with this class.
+const slammers = document.getElementsByClassName('slam-items');
+
+for (let i = 0; i < slammers.length; i++) {
+  let slammer = new Slammer(slammers[i]);
+}
+
+},{"./slammer":4}],3:[function(require,module,exports){
+
+const extend = require("./utils").extend;
+
+class SlammerNav {
+
+  constructor(slammer, options) {
+
+    let defaults = {
+        slideItemClass: 'slam-nav-item',
+    };
+
+    let modOptions = extend({}, defaults, options);
+    let slides = slammer.slides;
+
+    let navWrap = document.createElement('nav');
+    navWrap.classList.add('slam-nav-wrap');
+
+    // Instead of binding click handler to each list item, 
+    // we could capture events by bubbling to the main nav.
+    // (Not wholly necessary, but an option.)
+    let clickHandler = this.navEltHandler.bind(slammer);
+
+    slides.forEach(function(slide, i) {
+      let slideElt = document.createElement('div');
+      
+      slideElt.classList.add(modOptions.slideItemClass);
+      setSlideEltIndex(slideElt, i)
+
+      navWrap.appendChild(slideElt);
+
+      slideElt.addEventListener('click', clickHandler)
+    });
+
+
+    this.navWrap = navWrap;
+  }
+
+  navEltHandler(evt) {
+    // `this` (the context) is an instance of Slammer
+    // that's why you see the use of `.bind` when the `clickHandler` is created upon unitialization
+    // ... Not ideal, but it works for now!
+
+    if (this.locked) return;  
+    let slideElt       = evt.target || evt.srcElement;
+    let currentIndex   = this.curr;
+    let nextIndex      = getSlideEltIndex(slideElt);
+    let offset         = nextIndex - currentIndex;
+
+    this.relativeTransition(offset);
+  }
+}
+
+
+// Helpers
+function setSlideEltIndex(slideElt, i) {
+    if (!slideElt.dataset) {
+        slideElt.dataset = {}; // This is potentially very :poop:
+    }
+    slideElt.dataset.slammerIndex = i;
+}
+function getSlideEltIndex(slideElt) {
+    return +slideElt.dataset.slammerIndex; // the `+` is to coerce the index an integer. otherwise, it's returned as a string
+}
+
+module.exports = SlammerNav; 
+},{"./utils":5}],4:[function(require,module,exports){
 "use strict";
 
+/*
+ ON CONST:
+  This declaration creates a constant that can be global or local to the function in which it is declared. 
+  Constants are block-scoped. 
+  The value of a constant cannot change through re-assignment, and a constant cannot be re-declared. 
+  An initializer for a constant is required. 
+  A constant cannot share its name with a function or a variable in the same scope.
+ */
+
+const extend = require('./utils').extend;
 const Hammer = require('hammerjs');
+const SlammerNav = require("./nav");
 
 const activeSlideClass = "slam-item-active";
 const slidePositions = ["prev", "center", "next"];
 
 const transitionTime = 450;
 
-let locked = true;
-
 class Slammer {
-  constructor(wrapperElt) {
-    this.wrapper = wrapperElt;
-    this.slides = [];
+
+  constructor(wrapperElt, options) {
+
+    // NYU (BB)
+    let defaults = {
+      activeSlideClass: "slam-item-active",
+      transitionTime: 450,
+    }
+    this.options = extend({}, defaults, options);
+
+    this.wrapper = wrapperElt;  // The wrapper element
+    this.slides = [];           // 
 
     for (let i = 0; i < this.wrapper.children.length; i++) {
       this.slides.push(this.wrapper.children[i]);
     }
+
+    this.locked = true;
 
     this.curr = 0;
     this.prev = this.slides.length - 1;
@@ -2500,37 +2596,34 @@ class Slammer {
   }
 
   createNav() {
-    let navWrap = document.createElement('nav');
+    let options = this.options;
+    let nav     = new SlammerNav(this, options);
 
-    for (let i = 0; i < this.slides.length; i++) {
-      let slideElt = document.createElement('div');
-      slideElt.classList.add('slam-nav-item');
-      navWrap.appendChild(slideElt);
-      slideElt.addEventListener('click', () => {
-        if (!locked) {
-          if (i !== this.curr) {
-            // if the new slide is only offset by 1 from the current one,
-            // then we can proceed as usual.
-            if (Math.abs(this.curr - i) <= 1){
-              this.transformTo(this.curr, i, transitionTime);
-            } else {
-              if (i > this.curr) {
-                this.specialAdvance(i);
-              } else {
-                this.specialRetreat(i);
-              }
-            }
-          }
-        }
-      });
-    }
-
-    navWrap.classList.add('slam-nav-wrap');
-
-    this.slamNav = navWrap;
-
+    this.slamNav = nav.navWrap;
     this.wrapper.appendChild(this.slamNav);
     this.updateNav();
+  }
+
+  updateNav() {
+    let navItems = this.slamNav.children;
+    for (let i = 0; i < navItems.length; i++) {
+      if (navItems[i].classList.contains('slam-nav-active')) {
+        navItems[i].classList.remove('slam-nav-active');
+      } 
+      else if (i === this.curr) {
+        navItems[i].classList.add('slam-nav-active');
+      }
+    }
+  }
+
+  relativeTransition(offset) {
+    if (offset === 0) return;
+
+    let currentIndex = this.curr;
+    let nextIndex    = currentIndex + offset;
+
+    if (offset < 0) this.specialRetreat(nextIndex);
+    if (offset > 0) this.specialAdvance(nextIndex);
   }
 
   specialAdvance(newIndex) {
@@ -2540,8 +2633,8 @@ class Slammer {
 
     // 2. transformTo(nextIndex)
     window.setTimeout(() => {
-      this.transformTo(this.curr, newIndex, transitionTime);
-    }, 10);
+      this.transformTo(this.curr, newIndex, this.options.transitionTime);
+    }, 0);
 
   }
 
@@ -2552,32 +2645,20 @@ class Slammer {
 
     // 2. transformTo(nextIndex)
     window.setTimeout(() => {
-      this.transformTo(this.curr, newIndex, transitionTime);
-    }, 10);
-  }
-
-  updateNav() {
-    let navItems = this.slamNav.children;
-
-    for (let i = 0; i < navItems.length; i++) {
-      if (navItems[i].classList.contains('slam-nav-active')) {
-        navItems[i].classList.remove('slam-nav-active');
-      } else if (i === this.curr) {
-        navItems[i].classList.add('slam-nav-active');
-      }
-    }
+      this.transformTo(this.curr, newIndex, this.options.transitionTime);
+    }, 0);
   }
 
   retreat() {
     let newIndex = this.curr - 1;
 
-    this.transformTo(this.curr, newIndex, transitionTime);
+    this.transformTo(this.curr, newIndex, this.options.transitionTime);
   }
 
   advance() {
     let newIndex = this.curr + 1;
 
-    this.transformTo(this.curr, newIndex, transitionTime);
+    this.transformTo(this.curr, newIndex, this.options.transitionTime);
   }
 
   injectNewSurroundingSlides(currIndex, newIndex) {
@@ -2606,6 +2687,8 @@ class Slammer {
 
     let newTransformPos = 0;
 
+    let transitionTime = this.options.transitionTime;
+
     if (time <= 0) {
       newTransformPos = (1/3)*-100;
     } else if (nextIndex > currIndex || currIndex === this.slides.length - 1 && nextIndex === -1) {
@@ -2615,7 +2698,7 @@ class Slammer {
     }
 
     if (time > 0){
-      locked = true;
+      this.locked = true;
       this.newSlammer.classList.add('slammer-transitioning');
       this.newSlammer.style.transition = 'transform ' + transitionTime/1000 + 's';
       this.newSlammer.style.WebkitTransition = '-webkit-transform ' + transitionTime/1000 + 's';
@@ -2624,7 +2707,7 @@ class Slammer {
         this.newSlammer.style.transition = 'transform ' + 0 + 's';
         this.newSlammer.style.WebkitTransition = '-webkit-transform ' + 0 + 's';
         this.injectNewSurroundingSlides(currIndex, nextIndex);
-        locked = false;
+        this.locked = false;
       }, transitionTime);
     } else if (time < 0){
       this.curr = 0;
@@ -2637,7 +2720,7 @@ class Slammer {
   acceptHammers() {
     let hammer = new Hammer(this.newSlammer);
     hammer.on('swipe', (e) => {
-      if (!locked) {
+      if (!this.locked) {
         if (e.direction === 2) {
           this.advance();
         }
@@ -2647,17 +2730,14 @@ class Slammer {
       }
     });
     hammer.on('tap', (e) => {
-      if (!locked) {
+      if (!this.locked) {
         this.advance();
       }
     })
   }
 
 
-  /*
-  Initializes a new slammer.
-
-  */
+  /* Initializes a new slammer. */
   slam() {
 
     if (this.slides.length < 2) {
@@ -2713,19 +2793,33 @@ class Slammer {
 
     this.createNav();
 
-    locked = false;
+    this.locked = false;
 
     return;
   }
-
-
 }
 
-// Create Slammers out of all elts with this class.
-const slammers = document.getElementsByClassName('slam-items');
+module.exports = Slammer;
+},{"./nav":3,"./utils":5,"hammerjs":1}],5:[function(require,module,exports){
+module.exports = {
+    extend: extend,
+};
 
-for (let i = 0; i < slammers.length; i++) {
-  let slammer = new Slammer(slammers[i]);
+/*
+ * My shitty replacement for Object.assign
+ */
+function extend() {
+  if (!arguments.length) return;
+
+  let args = [].slice.call(arguments, 0);
+  let result = args.shift();
+
+  args.forEach(function(o) {
+    for (let prop in o)
+      if (o.hasOwnProperty(prop))
+        result[prop] = o[prop];
+  });
+
+  return result;
 }
-
-},{"hammerjs":1}]},{},[2]);
+},{}]},{},[2]);
