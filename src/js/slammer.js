@@ -48,7 +48,7 @@ class Slammer {
     this.currSlide = null;
     this.nextSlide = null;
 
-    this.slamNav = null;
+    this.nav = null;
 
     this.slam();
   }
@@ -57,21 +57,9 @@ class Slammer {
     let options = this.options;
     let nav     = new SlammerNav(this, options);
 
-    this.slamNav = nav.navWrap;
-    this.wrapper.appendChild(this.slamNav);
-    this.updateNav();
-  }
-
-  updateNav() {
-    let navItems = this.slamNav.children;
-    for (let i = 0; i < navItems.length; i++) {
-      if (navItems[i].classList.contains('slam-nav-active')) {
-        navItems[i].classList.remove('slam-nav-active');
-      } 
-      else if (i === this.curr) {
-        navItems[i].classList.add('slam-nav-active');
-      }
-    }
+    this.nav = nav;
+    this.wrapper.appendChild(this.nav.elt);
+    this.nav.update(this.curr);
   }
 
   relativeTransition(offset) {
@@ -100,7 +88,6 @@ class Slammer {
     // 1. inject contents of newIndex into Prev slide
     let newContent = this.slides[newIndex].innerHTML;
     this.prevSlide.innerHTML = newContent;
-
     // 2. transformTo(nextIndex)
     window.setTimeout(() => {
       this.transformTo(this.curr, newIndex, this.options.transitionTime);
@@ -135,7 +122,7 @@ class Slammer {
     this.curr = actualNewIndex;
 
     this.transformTo(actualNewIndex, 0, 0);
-    this.updateNav();
+    this.nav.update(this.curr);
 
   }
 

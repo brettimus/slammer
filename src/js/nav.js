@@ -7,32 +7,33 @@ class SlammerNav {
 
     let defaults = {
         slideItemClass: 'slam-nav-item',
+        slideItemActiveClass: 'slam-nav-active'
     };
 
-    let modOptions = extend({}, defaults, options);
+    this.options = extend({}, defaults, options);
     let slides = slammer.slides;
 
-    let navWrap = document.createElement('nav');
-    navWrap.classList.add('slam-nav-wrap');
+    let navElt = document.createElement('nav');
+    navElt.classList.add('slam-nav-wrap');
 
     // Instead of binding click handler to each list item, 
     // we could capture events by bubbling to the main nav.
     // (Not wholly necessary, but an option.)
     let clickHandler = this.navEltHandler.bind(slammer);
 
-    slides.forEach(function(slide, i) {
+    slides.forEach((slide, i) => {
       let slideElt = document.createElement('div');
       
-      slideElt.classList.add(modOptions.slideItemClass);
+      slideElt.classList.add(this.options.slideItemClass);
       setSlideEltIndex(slideElt, i)
 
-      navWrap.appendChild(slideElt);
+      navElt.appendChild(slideElt);
 
       slideElt.addEventListener('click', clickHandler)
     });
 
 
-    this.navWrap = navWrap;
+    this.elt = navElt;
   }
 
   navEltHandler(evt) {
@@ -47,6 +48,25 @@ class SlammerNav {
     let offset         = nextIndex - currentIndex;
 
     this.relativeTransition(offset);
+  }
+
+
+  update(currentIndex) {
+
+    let navItems = this.getItems();
+    
+    [].forEach.call(navItems, (item, index) => {
+      if (item.classList.contains('slam-nav-active')) {
+        item.classList.remove('slam-nav-active')
+      }
+      else if (index === currentIndex) {
+        item.classList.add('slam-nav-active');
+      }
+    });
+  }
+
+  getItems() {
+    return this.elt.children;
   }
 }
 
