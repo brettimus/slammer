@@ -11,13 +11,12 @@
 
 const extend = require('./utils').extend;
 const Hammer = require('hammerjs');
+const SlammerNav = require("./nav");
 
 const activeSlideClass = "slam-item-active";
 const slidePositions = ["prev", "center", "next"];
 
 const transitionTime = 450;
-
-// let locked = true;
 
 class Slammer {
 
@@ -28,7 +27,7 @@ class Slammer {
       activeSlideClass: "slam-item-active",
       transitionTime: 450,
     }
-    options = extend({}, defaults, options);
+    this.options = extend({}, defaults, options);
 
 
     this.wrapper = wrapperElt;  // The wrapper element
@@ -57,39 +56,23 @@ class Slammer {
   }
 
   createNav() {
-    let navWrap = document.createElement('nav');
+    let options = this.options;
+    let nav     = new SlammerNav(this, options);
 
-    for (let i = 0; i < this.slides.length; i++) {
-
-      let slideElt = document.createElement('div');
-
-      slideElt.classList.add('slam-nav-item');
-      navWrap.appendChild(slideElt);
-      slideElt.addEventListener('click', () => {
-        if (!this.locked) {
-          if (i !== this.curr) {
-            // if the new slide is only offset by 1 from the current one,
-            // then we can proceed as usual.
-            if (Math.abs(this.curr - i) <= 1){
-              this.transformTo(this.curr, i, transitionTime);
-            } else {
-              if (i > this.curr) {
-                this.specialAdvance(i);
-              } else {
-                this.specialRetreat(i);
-              }
-            }
-          }
-        }
-      });
-    }
-
-    navWrap.classList.add('slam-nav-wrap');
-
-    this.slamNav = navWrap;
-
+    this.slamNav = nav.navWrap;
     this.wrapper.appendChild(this.slamNav);
     this.updateNav();
+  }
+
+  updateNav() {
+    let navItems = this.slamNav.children;
+    for (let i = 0; i < navItems.length; i++) {
+      if (navItems[i].classList.contains('slam-nav-active')) {
+        navItems[i].classList.remove('slam-nav-active');
+      } else if (i === this.curr) {
+        navItems[i].classList.add('slam-nav-active');
+      }
+    }
   }
 
   specialAdvance(newIndex) {
@@ -111,32 +94,20 @@ class Slammer {
 
     // 2. transformTo(nextIndex)
     window.setTimeout(() => {
-      this.transformTo(this.curr, newIndex, transitionTime);
+      this.transformTo(this.curr, newIndex, this.options.transitionTime);
     }, 10);
-  }
-
-  updateNav() {
-    let navItems = this.slamNav.children;
-
-    for (let i = 0; i < navItems.length; i++) {
-      if (navItems[i].classList.contains('slam-nav-active')) {
-        navItems[i].classList.remove('slam-nav-active');
-      } else if (i === this.curr) {
-        navItems[i].classList.add('slam-nav-active');
-      }
-    }
   }
 
   retreat() {
     let newIndex = this.curr - 1;
 
-    this.transformTo(this.curr, newIndex, transitionTime);
+    this.transformTo(this.curr, newIndex, this.options.transitionTime);
   }
 
   advance() {
     let newIndex = this.curr + 1;
 
-    this.transformTo(this.curr, newIndex, transitionTime);
+    this.transformTo(this.curr, newIndex, this.options.transitionTime);
   }
 
   injectNewSurroundingSlides(currIndex, newIndex) {
@@ -164,6 +135,8 @@ class Slammer {
     let currTransformContent = parseFloat(currTransformPos.split('(')[1].split('%')[0]);
 
     let newTransformPos = 0;
+
+    let transitionTime = this.options.transitionTime;
 
     if (time <= 0) {
       newTransformPos = (1/3)*-100;
