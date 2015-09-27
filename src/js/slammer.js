@@ -141,23 +141,26 @@ class Slammer {
     }
 
     if (time > 0) {
+      let transitionClassName = 'slammer-transitioning';
       let transitionProperty = 'transform ' + transitionTime/1000 + 's';
       this.lock();
-      this.triptych.root.classList.add('slammer-transitioning');
+      // this.triptych.root.classList.add('slammer-transitioning');
+      this.triptych.addClass(transitionClassName)
       setTransition(this.triptych.root, transitionProperty)
 
       // TODO - call this function when the transition end event fires instead of using setTimeout
       // (although, transitionend event has spotty browser support...)
       window.setTimeout(() => {
-
-        this.triptych.root.classList.remove('slammer-transitioning');
+        debugger;
+        this.triptych.removeClass(transitionClassName)
+        // this.triptych.root.classList.remove('slammer-transitioning');
         setTransition(this.triptych.root, 'transform 0s')
 
         this
           .injectNewSurroundingSlides(currIndex, nextIndex)
           .unlock();
 
-      }, transitionTime);
+      }.bind(this), transitionTime);
 
     } 
     else if (time < 0){

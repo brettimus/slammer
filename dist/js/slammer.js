@@ -2744,20 +2744,25 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     }
 
                     if (time > 0) {
-                        var transitionProperty = 'transform ' + transitionTime / 1000 + 's';
-                        this.lock();
-                        this.triptych.root.classList.add('slammer-transitioning');
-                        setTransition(this.triptych.root, transitionProperty);
+                        (function () {
+                            var transitionClassName = 'slammer-transitioning';
+                            var transitionProperty = 'transform ' + transitionTime / 1000 + 's';
+                            _this4.lock();
+                            // this.triptych.root.classList.add('slammer-transitioning');
+                            _this4.triptych.addClass(transitionClassName);
+                            setTransition(_this4.triptych.root, transitionProperty);
 
-                        // TODO - call this function when the transition end event fires instead of using setTimeout
-                        // (although, transitionend event has spotty browser support...)
-                        window.setTimeout(function () {
+                            // TODO - call this function when the transition end event fires instead of using setTimeout
+                            // (although, transitionend event has spotty browser support...)
+                            window.setTimeout((function () {
+                                debugger;
+                                _this4.triptych.removeClass(transitionClassName);
+                                // this.triptych.root.classList.remove('slammer-transitioning');
+                                setTransition(_this4.triptych.root, 'transform 0s');
 
-                            _this4.triptych.root.classList.remove('slammer-transitioning');
-                            setTransition(_this4.triptych.root, 'transform 0s');
-
-                            _this4.injectNewSurroundingSlides(currIndex, nextIndex).unlock();
-                        }, transitionTime);
+                                _this4.injectNewSurroundingSlides(currIndex, nextIndex).unlock();
+                            }).bind(_this4), transitionTime);
+                        })();
                     } else if (time < 0) {
                         this.curr = 0;
                     }
@@ -2835,32 +2840,50 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         var mergeStyles = require("./utils").mergeStyles;
         var newDiv = require("./utils").newDiv;
 
-        var SlammerTriptych = function SlammerTriptych(baseSlides) {
-            var _this6 = this;
+        var SlammerTriptych = (function () {
+            function SlammerTriptych(baseSlides) {
+                var _this6 = this;
 
-            _classCallCheck(this, SlammerTriptych);
+                _classCallCheck(this, SlammerTriptych);
 
-            this.root = newDiv(); // More expressive name?
-            this.root.classList.add('slam-items');
+                this.root = newDiv(); // More expressive name?
+                this.root.classList.add('slam-items');
 
-            this.prevSlide = newDiv();
-            this.currSlide = newDiv();
-            this.nextSlide = newDiv();
+                this.prevSlide = newDiv();
+                this.currSlide = newDiv();
+                this.nextSlide = newDiv();
 
-            var slides = [this.prevSlide, this.currSlide, this.nextSlide];
-            slides.forEach(function (slide, i) {
+                var slides = [this.prevSlide, this.currSlide, this.nextSlide];
+                slides.forEach(function (slide, i) {
 
-                _this6.root.appendChild(slide);
+                    _this6.root.appendChild(slide);
 
-                var origSlideIndex = i - 1 >= 0 ? i - 1 : baseSlides.length - 1; // why?
+                    var origSlideIndex = i - 1 >= 0 ? i - 1 : baseSlides.length - 1; // why?
 
-                var origSlide = baseSlides[origSlideIndex];
+                    var origSlide = baseSlides[origSlideIndex];
 
-                slide.innerHTML = origSlide.innerHTML;
-                mergeClassList(slide, origSlide);
-                mergeStyles(slide, origSlide);
-            });
-        };
+                    slide.innerHTML = origSlide.innerHTML;
+                    mergeClassList(slide, origSlide);
+                    mergeStyles(slide, origSlide);
+                });
+            }
+
+            _createClass(SlammerTriptych, [{
+                key: "addClass",
+                value: function addClass(className) {
+                    this.root.classList.add(className);
+                    return this;
+                }
+            }, {
+                key: "removeClass",
+                value: function removeClass(className) {
+                    this.root.classList.remove(className);
+                    return this;
+                }
+            }]);
+
+            return SlammerTriptych;
+        })();
 
         module.exports = SlammerTriptych;
     }, { "./utils": 6 }], 6: [function (require, module, exports) {

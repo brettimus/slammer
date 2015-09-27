@@ -30,6 +30,16 @@ class SlammerTriptych {
     });
   }
 
+  addClass(className) {
+    this.root.classList.add(className)
+    return this;
+  }
+
+  removeClass(className) {
+    this.root.classList.remove(className)
+    return this;
+  }
+
 }
 
 module.exports = SlammerTriptych;
