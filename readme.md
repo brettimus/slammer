@@ -30,6 +30,9 @@ The transition duration.
 ### `transitionClassName: 'slammer-transitioning'`
 The class assigned to the parent element of images _while they are transitioning_.
 
+### `nav: true`
+If falsey, omits the nav.
+
 ### `navClass: 'slam-nav-wrap'`
 The class assigned to the nav.
 
