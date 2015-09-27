@@ -19,7 +19,7 @@ class SlammerTriptych {
     this.transitionTime      = this.options.transitionTime;
 
     this
-      .setRoot() // TODO - configure className
+      .setRoot()
       .setSlides()
       .hammer(new Hammer(this.root))
       .transform("translateX(0%)")
@@ -39,7 +39,6 @@ class SlammerTriptych {
     wrapper.appendChild(this.root);
     this.center();
   }
-
 
   addClass(className) {
     this.root.classList.add(className)
@@ -140,7 +139,7 @@ class SlammerTriptych {
   }
 
   swipe(callback) {
-    this.hammer.on('swipe', (evt) => {
+    this.hammer().on('swipe', (evt) => {
       if (evt.direction === 2)
         callback(1);
       if (evt.direction === 4)
@@ -150,7 +149,7 @@ class SlammerTriptych {
   }
 
   tap(callback) {
-    this.hammer.on('tap', callback)
+    this.hammer().on('tap', callback)
     return this;
   }
 

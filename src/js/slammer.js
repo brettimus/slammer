@@ -18,10 +18,11 @@ class Slammer {
 
     this.options       = extend({}, defaults, options);
     this.startingIndex = this.options.startingIndex;
-    this.slides        = toArray(wrapperElt.children);
+
+    this.slides        = toArray(wrapperElt.children); // TODO - abstract the idea of a `slide`
 
     this
-      .lock()        // The lock helps to short circuit event handlers if a transition is in progress.
+      .lock() // See note on lock method
       .currentIndex(this.startingIndex)
       .wrapper(wrapperElt)
       .triptych(new SlammerTriptych(this.wrapper(), this.slides, this.options))
@@ -36,6 +37,7 @@ class Slammer {
     return this;
   }
 
+  /*** triptych-related ***/
   triptych(value) {
     if (!arguments.length) return this._triptych;
     value
@@ -80,7 +82,7 @@ class Slammer {
   }
 
 
-  /*** triptych (transition) related ***/
+  /*** transition related ***/
   relativeTransition(offset) {
     if (offset === 0) return;
     return this.transformTo(this.currentIndex() + offset);
@@ -120,26 +122,30 @@ class Slammer {
     return this;
   }
 
-  /*** helpers ***/
-
+  /*** slide-accessor helpers ***/
   currentIndex(value) {
     if (!arguments.length) return this.curr;
     this.curr = this.indexify(value);
     return this;
   }
 
-  // Makes sure that a given index is in the slide range
   getSlideHTML(index) {
     index = this.indexify(index);
     return this.slides[index].innerHTML;
   }
 
   indexify(index) {
+    // Makes sure that a given index is in the slide range
     while (index < 0) index += this.slides.length;
     return index % this.slides.length;
   }
 
   /*** lock-related ***/
+  /*** The lock helps to short circuit event handlers if a transition is in progress. ***/
+  isLocked() {
+    return this.locked;
+  }
+
   lock() {
     this.locked = true;
     return this;
@@ -150,9 +156,6 @@ class Slammer {
     return this;
   }
 
-  isLocked() {
-    return this.locked;
-  }
 }
 
 module.exports = Slammer;

@@ -24,11 +24,35 @@ class SlammerNav {
     wrapper.appendChild(this.root);
   }
 
-  setRoot() {
-    let navElt = document.createElement('nav');
-    navElt.classList.add(this.navClass);
-    this.root = navElt;
+  activateItem(item) {
+    let activeClass = this.navItemActiveClass;
+    item.classList.add(activeClass);
+  }
+
+  addItem(index) {
+    let navItem = newDiv();
+    navItem.classList.add(this.navItemClass);
+
+    this.setNavItemIndex(navItem, index)
+    this.root.appendChild(navItem);
+
     return this;
+  }
+
+  deactivateItem(item) {
+    let activeClass = this.navItemActiveClass;
+    item.classList.remove(activeClass);
+  }
+
+
+  forEachItem(fun) {
+    let items = [].slice.call(this.root.children, 0);
+    items.forEach(fun, this);
+    return this;
+  }
+
+  getNavItemIndex(elt) {
+      return +elt.dataset.slammerIndex;
   }
 
   hammer(value) {
@@ -42,6 +66,21 @@ class SlammerNav {
     slides.forEach((slide, i) => {
       this.addItem(i);
     });
+    return this;
+  }
+
+  setNavItemIndex(elt, i) {
+      if (!elt.dataset) {
+          elt.dataset = {}; // WARNING This is potentially very :poop:
+      }
+      elt.dataset.slammerIndex = i;
+      return this;
+  }
+
+  setRoot() {
+    let navElt = document.createElement('nav');
+    navElt.classList.add(this.navClass);
+    this.root = navElt;
     return this;
   }
 
@@ -68,49 +107,6 @@ class SlammerNav {
       });
 
     return this;
-  }
-
-  addItem(index) {
-    let navItem = newDiv();
-    navItem.classList.add(this.navItemClass);
-
-    this.setNavItemIndex(navItem, index)
-    this.root.appendChild(navItem);
-
-    return this;
-  }
-
-  forEachItem(fun) {
-    let items = [].slice.call(this.root.children, 0);
-    items.forEach(fun, this);
-    return this;
-  }
-
-  isActiveItem(item) {
-    let activeClass = this.navItemActiveClass;
-    return item.classList.contains(activeClass)
-  }
-
-  activateItem(item) {
-    let activeClass = this.navItemActiveClass;
-    item.classList.add(activeClass);
-  }
-
-  deactivateItem(item) {
-    let activeClass = this.navItemActiveClass;
-    item.classList.remove(activeClass);
-  }
-
-  setNavItemIndex(elt, i) {
-      if (!elt.dataset) {
-          elt.dataset = {}; // WARNING This is potentially very :poop:
-      }
-      elt.dataset.slammerIndex = i;
-      return this;
-  }
-
-  getNavItemIndex(elt) {
-      return +elt.dataset.slammerIndex; // the `+` is to coerce the index an integer. otherwise, it's returned as a string
   }
 }
 
