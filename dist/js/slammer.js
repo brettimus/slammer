@@ -2520,6 +2520,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             _createClass(SlammerNav, [{
                 key: "navEltHandler",
                 value: function navEltHandler(evt) {
+
+                    /*** I dislike this for the record. Not happy about it at all. ***/
+                    //
                     // `this` (the context) is an instance of Slammer
                     // that's why you see the use of `.bind` when the `clickHandler` is created upon unitialization
                     // ... Not ideal, but it works for now!
@@ -2530,6 +2533,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var nextIndex = getSlideEltIndex(slideElt);
                     var offset = nextIndex - currentIndex;
 
+                    this.nav.update(currentIndex);
                     this.relativeTransition(offset);
                 }
             }, {
@@ -2673,13 +2677,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var _this3 = this;
 
                     // 1. inject contents of newIndex into Next slide
-                    var newContent = this.slides[newIndex].innerHTML;
-                    this.triptych.nextSlide.innerHTML = newContent;
+                    var newContents = this.getSlideHTML(newIndex);
+                    if (newIndex < this.curr) {
+                        this.triptych.prev(newContents);
+                    } else {
+                        this.triptych.next(newContents);
+                    }
 
                     // 2. transformTo(nextIndex)
                     window.setTimeout(function () {
                         _this3.transformTo(_this3.curr, newIndex, _this3.options.transitionTime);
-                    }, 0);
+                    }, 10);
                 }
             }, {
                 key: "retreat",
@@ -2698,19 +2706,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "injectNewSurroundingSlides",
                 value: function injectNewSurroundingSlides(currIndex, newIndex) {
-                    newIndex = this.indexify(newIndex);
-                    var nextIndex = this.indexify(newIndex + 1);
-                    var prevIndex = this.indexify(newIndex - 1);
 
                     // Update current index
-                    this.curr = newIndex;
-
                     // Update current, next, and prev slides
-                    this.triptych.current(this.getSlideHTML(newIndex)).next(this.getSlideHTML(nextIndex)).prev(this.getSlideHTML(prevIndex));
+                    this.currentIndex(newIndex).triptych.current(this.getSlideHTML(newIndex)).next(this.getSlideHTML(newIndex + 1)).prev(this.getSlideHTML(newIndex - 1));
 
                     // Apply transforms to slides
-                    this.transformTo(newIndex, 0, 0); // This should be on the triptych... but we've other things to do before that.
-                    this.nav.update(this.curr);
+                    this.transformTo(newIndex, 0, 0) // This method really should be on the triptych... and it should probably take a callback (for the locking, unlocking thing)
+                    .nav.update(this.currentIndex());
 
                     return this;
                 }
@@ -2787,6 +2790,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     return this;
                 }
+            }, {
+                key: "currentIndex",
+                value: function currentIndex(value) {
+                    if (!arguments.length) return this.curr;
+                    this.curr = this.indexify(value);
+                    return this;
+                }
 
                 // Makes sure that a given index is in the slide range
             }, {
@@ -2798,6 +2808,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "getSlideHTML",
                 value: function getSlideHTML(index) {
+                    index = this.indexify(index);
                     return this.slides[index].innerHTML;
                 }
 

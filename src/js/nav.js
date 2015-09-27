@@ -37,6 +37,9 @@ class SlammerNav {
   }
 
   navEltHandler(evt) {
+
+    /*** I dislike this for the record. Not happy about it at all. ***/
+    //
     // `this` (the context) is an instance of Slammer
     // that's why you see the use of `.bind` when the `clickHandler` is created upon unitialization
     // ... Not ideal, but it works for now!
@@ -47,6 +50,7 @@ class SlammerNav {
     let nextIndex      = getSlideEltIndex(slideElt);
     let offset         = nextIndex - currentIndex;
 
+    this.nav.update(currentIndex);
     this.relativeTransition(offset);
   }
 

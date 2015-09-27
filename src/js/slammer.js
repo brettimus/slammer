@@ -75,13 +75,18 @@ class Slammer {
 
   specialTransition(newIndex) {
     // 1. inject contents of newIndex into Next slide
-    let newContent = this.slides[newIndex].innerHTML;
-    this.triptych.nextSlide.innerHTML = newContent;
+    let newContents = this.getSlideHTML(newIndex);
+    if (newIndex < this.curr) {
+      this.triptych.prev(newContents)
+    }
+    else {
+      this.triptych.next(newContents);
+    }
 
     // 2. transformTo(nextIndex)
     window.setTimeout(() => {
       this.transformTo(this.curr, newIndex, this.options.transitionTime);
-    }, 0);
+    }, 10);
   }
 
   retreat() {
@@ -96,22 +101,21 @@ class Slammer {
 
   // TODO - move a variant of this to triptych
   injectNewSurroundingSlides(currIndex, newIndex) {
-    newIndex        = this.indexify(newIndex);
-    const nextIndex = this.indexify(newIndex + 1);
-    const prevIndex = this.indexify(newIndex - 1);
 
     // Update current index
-    this.curr = newIndex;
-
     // Update current, next, and prev slides
-    this.triptych
+    this
+      .currentIndex(newIndex)
+      .triptych
         .current(this.getSlideHTML(newIndex))
-        .next(this.getSlideHTML(nextIndex))
-        .prev(this.getSlideHTML(prevIndex));
+        .next(this.getSlideHTML(newIndex + 1))
+        .prev(this.getSlideHTML(newIndex - 1));
 
     // Apply transforms to slides
-    this.transformTo(newIndex, 0, 0); // This should be on the triptych... but we've other things to do before that.
-    this.nav.update(this.curr);
+    this
+      .transformTo(newIndex, 0, 0) // This method really should be on the triptych... and it should probably take a callback (for the locking, unlocking thing)
+      .nav
+        .update(this.currentIndex());
 
     return this;
   }
@@ -121,7 +125,7 @@ class Slammer {
     let currTransformContent =  this.triptych.translateXPercent();
 
     let offset = nextIndex - currIndex;
-    let isCurrentItemLast = currIndex === this.slides.length - 1;
+    let isCurrentItemLast = (currIndex === this.slides.length - 1);
 
     let transitionTime = this.options.transitionTime;
 
@@ -193,6 +197,12 @@ class Slammer {
     return this;
   }
 
+  currentIndex(value) {
+    if (!arguments.length) return this.curr;
+    this.curr = this.indexify(value);
+    return this;
+  }
+
   // Makes sure that a given index is in the slide range
   indexify(index) {
     while (index < 0) index += this.slides.length;
@@ -200,6 +210,7 @@ class Slammer {
   }
 
   getSlideHTML(index) {
+    index = this.indexify(index);
     return this.slides[index].innerHTML;
   }
 
