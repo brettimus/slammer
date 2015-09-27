@@ -2595,24 +2595,18 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }
 
         module.exports = SlammerNav;
-    }, { "./utils": 5 }], 4: [function (require, module, exports) {
+    }, { "./utils": 6 }], 4: [function (require, module, exports) {
         "use strict";
 
-        /*
-         ON CONST:
-          This declaration creates a constant that can be global or local to the function in which it is declared. 
-          Constants are block-scoped. 
-          The value of a constant cannot change through re-assignment, and a constant cannot be re-declared. 
-          An initializer for a constant is required. 
-          A constant cannot share its name with a function or a variable in the same scope.
-         */
-
-        var extend = require('./utils').extend;
         var Hammer = require('hammerjs');
         var SlammerNav = require("./nav");
+        var SlammerTriptych = require("./triptych");
 
-        var activeSlideClass = "slam-item-active";
-        var slidePositions = ["prev", "center", "next"];
+        var extend = require('./utils').extend;
+        var getTransformPercentAsNumber = require("./utils").getTransformPercentAsNumber;
+        var setTransform = require("./utils").setTransform;
+        var setTransition = require("./utils").setTransition;
+        var toArray = require("./utils").toArray;
 
         var transitionTime = 450;
 
@@ -2621,32 +2615,33 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 _classCallCheck(this, Slammer);
 
                 var defaults = {
-                    activeSlideClass: "slam-item-active",
                     transitionTime: 450
                 };
 
                 this.options = extend({}, defaults, options);
+                this.slides = toArray(wrapperElt.children);
 
-                this.wrapper = wrapperElt;
-                this.slides = [].slice.call(this.wrapper.children, 0);
-
-                // Global lock. (?? Short circuits event handlers while a transition is occurring.)
-                this.locked = true;
+                // Set the global lock
+                // * The lock helps to short circuit event handlers if a transition is in progress.
+                this.lock();
 
                 this.curr = 0;
-                this.prev = this.slides.length - 1;
+                this.prev = this.indexify(-1);
                 this.next = 1;
 
-                this.newSlammer = null;
-                this.position = null;
+                this.nav = null; // Populated by `createNav`
 
-                this.prevSlide = null;
-                this.currSlide = null;
-                this.nextSlide = null;
+                if (this.slides.length < 2) return;
 
-                this.nav = null;
+                this.triptych = new SlammerTriptych(this.slides);
 
-                this.slam();
+                this.wrapper = wrapperElt.parentNode;
+                this.wrapper.removeChild(wrapperElt);
+                this.wrapper.appendChild(this.triptych.root);
+
+                setTransform(this.triptych.root, "translateX(0%)"); // MOVE THIS TO TRIPTYCH CLASS? (BB)
+
+                this.transformTo(-1, 0, -1).acceptHammers().createNav().unlock();
             }
 
             _createClass(Slammer, [{
@@ -2655,26 +2650,24 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var options = this.options;
                     this.nav = new SlammerNav(this, options);
                     this.wrapper.appendChild(this.nav.elt);
+                    return this;
                 }
             }, {
                 key: "relativeTransition",
                 value: function relativeTransition(offset) {
                     if (offset === 0) return;
 
-                    var currentIndex = this.curr;
-                    var nextIndex = currentIndex + offset;
-
-                    if (offset < 0) this.specialRetreat(nextIndex);
-                    if (offset > 0) this.specialAdvance(nextIndex);
+                    var nextIndex = this.curr + offset;
+                    this.specialTransition(nextIndex);
                 }
             }, {
-                key: "specialAdvance",
-                value: function specialAdvance(newIndex) {
+                key: "specialTransition",
+                value: function specialTransition(newIndex) {
                     var _this3 = this;
 
                     // 1. inject contents of newIndex into Next slide
                     var newContent = this.slides[newIndex].innerHTML;
-                    this.nextSlide.innerHTML = newContent;
+                    this.triptych.nextSlide.innerHTML = newContent;
 
                     // 2. transformTo(nextIndex)
                     window.setTimeout(function () {
@@ -2682,174 +2675,138 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     }, 0);
                 }
             }, {
-                key: "specialRetreat",
-                value: function specialRetreat(newIndex) {
-                    var _this4 = this;
-
-                    // 1. inject contents of newIndex into Prev slide
-                    var newContent = this.slides[newIndex].innerHTML;
-                    this.prevSlide.innerHTML = newContent;
-                    // 2. transformTo(nextIndex)
-                    window.setTimeout(function () {
-                        _this4.transformTo(_this4.curr, newIndex, _this4.options.transitionTime);
-                    }, 0);
-                }
-            }, {
                 key: "retreat",
                 value: function retreat() {
                     var newIndex = this.curr - 1;
-
                     this.transformTo(this.curr, newIndex, this.options.transitionTime);
                 }
             }, {
                 key: "advance",
                 value: function advance() {
                     var newIndex = this.curr + 1;
-
                     this.transformTo(this.curr, newIndex, this.options.transitionTime);
                 }
             }, {
                 key: "injectNewSurroundingSlides",
                 value: function injectNewSurroundingSlides(currIndex, newIndex) {
-                    var actualNewIndex = (newIndex + this.slides.length) % this.slides.length;
-                    var actualNextIndex = (actualNewIndex + 1 + this.slides.length) % this.slides.length;
-                    var actualPrevIndex = (actualNewIndex - 1 + this.slides.length) % this.slides.length;
+                    newIndex = this.indexify(newIndex);
+                    var nextIndex = this.indexify(newIndex + 1);
+                    var prevIndex = this.indexify(newIndex - 1);
 
-                    var newCurrContent = this.slides[actualNewIndex].innerHTML;
-                    var newNextContent = this.slides[actualNextIndex].innerHTML;
-                    var newPrevContent = this.slides[actualPrevIndex].innerHTML;
+                    // Update current index
+                    this.curr = newIndex;
 
-                    this.currSlide.innerHTML = newCurrContent;
-                    this.nextSlide.innerHTML = newNextContent;
-                    this.prevSlide.innerHTML = newPrevContent;
+                    // Update current, next, and prev slides
+                    this.triptych.currSlide.innerHTML = this.getSlideHTML(newIndex);
+                    this.triptych.nextSlide.innerHTML = this.getSlideHTML(nextIndex);
+                    this.triptych.prevSlide.innerHTML = this.getSlideHTML(prevIndex);
 
-                    this.curr = actualNewIndex;
-
-                    this.transformTo(actualNewIndex, 0, 0);
+                    // Apply proper transforms to slides
+                    this.transformTo(newIndex, 0, 0);
                     this.nav.update(this.curr);
+
+                    return this;
                 }
             }, {
                 key: "transformTo",
                 value: function transformTo(currIndex, nextIndex, time) {
-                    var _this5 = this;
+                    var _this4 = this;
 
-                    var currTransformPos = this.newSlammer.style.transform;
-                    var currTransformContent = parseFloat(currTransformPos.split('(')[1].split('%')[0]);
+                    var currTransformContent = getTransformPercentAsNumber(this.triptych.root.style.transform); // TODO - make this a method on the triptych
 
-                    var newTransformPos = 0;
+                    var offset = nextIndex - currIndex;
+                    var isCurrentItemLast = currIndex === this.slides.length - 1;
 
                     var transitionTime = this.options.transitionTime;
 
+                    if (nextIndex === -1) debugger; /* ?? What causes this case ?? I couldn't trigger it. (BB) */
+
+                    var newTransformPos = undefined;
                     if (time <= 0) {
                         newTransformPos = 1 / 3 * -100;
-                    } else if (nextIndex > currIndex || currIndex === this.slides.length - 1 && nextIndex === -1) {
+                    } else if (offset > 0 || isCurrentItemLast && nextIndex === -1) {
                         newTransformPos = currTransformContent + 1 / 3 * -100;
                     } else {
                         newTransformPos = currTransformContent + 1 / 3 * 100;
                     }
 
                     if (time > 0) {
-                        this.locked = true;
-                        this.newSlammer.classList.add('slammer-transitioning');
-                        this.newSlammer.style.transition = 'transform ' + transitionTime / 1000 + 's';
-                        this.newSlammer.style.WebkitTransition = '-webkit-transform ' + transitionTime / 1000 + 's';
+                        var transitionProperty = 'transform ' + transitionTime / 1000 + 's';
+                        this.lock();
+                        this.triptych.root.classList.add('slammer-transitioning');
+                        setTransition(this.triptych.root, transitionProperty);
+
+                        // TODO - call this function when the transition end event fires instead of using setTimeout
+                        // (although, transitionend event has spotty browser support...)
                         window.setTimeout(function () {
-                            _this5.newSlammer.classList.remove('slammer-transitioning');
-                            _this5.newSlammer.style.transition = 'transform ' + 0 + 's';
-                            _this5.newSlammer.style.WebkitTransition = '-webkit-transform ' + 0 + 's';
-                            _this5.injectNewSurroundingSlides(currIndex, nextIndex);
-                            _this5.locked = false;
+
+                            _this4.triptych.root.classList.remove('slammer-transitioning');
+                            setTransition(_this4.triptych.root, 'transform 0s');
+
+                            _this4.injectNewSurroundingSlides(currIndex, nextIndex).unlock();
                         }, transitionTime);
                     } else if (time < 0) {
                         this.curr = 0;
                     }
 
-                    this.newSlammer.style.WebkitTransform = "translateX(" + newTransformPos + "%)";
-                    this.newSlammer.style.transform = "translateX(" + newTransformPos + "%)";
+                    setTransform(this.triptych.root, "translateX(" + newTransformPos + "%)");
+                    return this;
                 }
             }, {
                 key: "acceptHammers",
                 value: function acceptHammers() {
-                    var _this6 = this;
+                    var _this5 = this;
 
-                    var hammer = new Hammer(this.newSlammer);
+                    var hammer = new Hammer(this.triptych.root);
+
                     hammer.on('swipe', function (e) {
-                        if (!_this6.locked) {
-                            if (e.direction === 2) {
-                                _this6.advance();
-                            } else if (e.direction === 4) {
-                                _this6.retreat();
-                            }
+                        if (_this5.isLocked) return;
+                        if (e.direction === 2) {
+                            _this5.advance();
+                        }
+                        if (e.direction === 4) {
+                            _this5.retreat();
                         }
                     });
+
                     hammer.on('tap', function (e) {
-                        if (!_this6.locked) {
-                            _this6.advance();
-                        }
+                        if (_this5.isLocked()) return;
+                        _this5.advance();
                     });
+
+                    return this;
                 }
 
-                /* Initializes a new slammer. */
+                // Make sure that index is in our slide range
             }, {
-                key: "slam",
-                value: function slam() {
+                key: "indexify",
+                value: function indexify(index) {
+                    while (index < 0) index += this.slides.length;
+                    return index % this.slides.length;
+                }
+            }, {
+                key: "getSlideHTML",
+                value: function getSlideHTML(index) {
+                    return this.slides[index].innerHTML;
+                }
 
-                    if (this.slides.length < 2) {
-                        return;
-                    }
-
-                    // create new, three-slide slammer out of curr, prev, and next
-                    this.newSlammer = document.createElement('div');
-                    this.prevSlide = document.createElement('div');
-                    this.currSlide = document.createElement('div');
-                    this.nextSlide = document.createElement('div');
-
-                    var slides = [this.prevSlide, this.currSlide, this.nextSlide];
-                    var origSlideCopies = [];
-
-                    for (var _i2 = 0; _i2 < this.slides.length; _i2++) {
-                        var curr = this.slides[_i2];
-                        var newSlide = {
-                            "content": curr.innerHTML,
-                            "classes": curr.classList,
-                            "style": curr.style
-                        };
-                        origSlideCopies.push(newSlide);
-                    }
-
-                    for (var _i3 = 0; _i3 < slides.length; _i3++) {
-                        this.newSlammer.appendChild(slides[_i3]);
-                        var slideIndexToUse = _i3 - 1 >= 0 ? _i3 - 1 : origSlideCopies.length - 1;
-                        slides[_i3].innerHTML = origSlideCopies[slideIndexToUse].content;
-                        for (var j = 0; j < origSlideCopies[slideIndexToUse].classes.length; j++) {
-                            slides[_i3].classList.add(origSlideCopies[slideIndexToUse].classes[j]);
-                        }
-                        for (var prop in origSlideCopies[slideIndexToUse].style) {
-                            if (origSlideCopies[slideIndexToUse].style[prop] && origSlideCopies[slideIndexToUse].style[prop].length > 0) {
-                                slides[_i3].style[prop] = origSlideCopies[slideIndexToUse].style[prop];
-                            }
-                        }
-                    }
-
-                    var realWrapper = this.wrapper.parentNode;
-
-                    realWrapper.removeChild(this.wrapper);
-
-                    this.wrapper = realWrapper;
-
-                    this.wrapper.appendChild(this.newSlammer);
-                    this.newSlammer.classList.add('slam-items');
-                    this.newSlammer.style.WebkitTransform = "translateX(0%)";
-                    this.newSlammer.style.transform = "translateX(0%)";
-
-                    this.transformTo(-1, 0, -1);
-                    this.acceptHammers();
-
-                    this.createNav();
-
+                // The `lock` interface.
+            }, {
+                key: "lock",
+                value: function lock() {
+                    this.locked = true;
+                    return this;
+                }
+            }, {
+                key: "unlock",
+                value: function unlock() {
                     this.locked = false;
-
-                    return;
+                    return this;
+                }
+            }, {
+                key: "isLocked",
+                value: function isLocked() {
+                    return this.locked;
                 }
             }]);
 
@@ -2857,9 +2814,52 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         })();
 
         module.exports = Slammer;
-    }, { "./nav": 3, "./utils": 5, "hammerjs": 1 }], 5: [function (require, module, exports) {
+    }, { "./nav": 3, "./triptych": 5, "./utils": 6, "hammerjs": 1 }], 5: [function (require, module, exports) {
+        // NYI
+        // This should replace the "newSlammer" property in slammer
+
+        var mergeClassList = require("./utils").mergeClassList;
+        var mergeStyles = require("./utils").mergeStyles;
+        var newDiv = require("./utils").newDiv;
+
+        var SlammerTriptych = function SlammerTriptych(baseSlides) {
+            var _this6 = this;
+
+            _classCallCheck(this, SlammerTriptych);
+
+            this.root = newDiv(); // More expressive name?
+            this.root.classList.add('slam-items');
+
+            this.prevSlide = newDiv();
+            this.currSlide = newDiv();
+            this.nextSlide = newDiv();
+
+            var slides = [this.prevSlide, this.currSlide, this.nextSlide];
+            slides.forEach(function (slide, i) {
+
+                _this6.root.appendChild(slide);
+
+                var origSlideIndex = i - 1 >= 0 ? i - 1 : baseSlides.length - 1; // why?
+
+                var origSlide = baseSlides[origSlideIndex];
+
+                slide.innerHTML = origSlide.innerHTML;
+                mergeClassList(slide, origSlide);
+                mergeStyles(slide, origSlide);
+            });
+        };
+
+        module.exports = SlammerTriptych;
+    }, { "./utils": 6 }], 6: [function (require, module, exports) {
         module.exports = {
-            extend: extend
+            extend: extend,
+            getTransformPercentAsNumber: getTransformPercentAsNumber,
+            mergeClassList: mergeClassList,
+            mergeStyles: mergeStyles,
+            newDiv: newDiv,
+            setTransform: setTransform,
+            setTransition: setTransition,
+            toArray: toArray
         };
 
         /*
@@ -2878,6 +2878,61 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             });
 
             return result;
+        }
+
+        /*
+         * Parses a transform string and extracts the percentage by which it has been translated.
+         */
+        function getTransformPercentAsNumber(transform) {
+            return parseFloat(transform.split('(')[1].split('%')[0]);
+        }
+
+        /*
+         * Sets transform property on given elt
+         */
+        function setTransform(elt, transform) {
+            elt.style.WebkitTransform = transform;
+            elt.style.transform = transform;
+        }
+
+        /*
+         * Sets transition property on given elt
+         */
+        function setTransition(elt, transition) {
+            elt.style.WebkitTransition = transition;
+            elt.style.transition = transition;
+        }
+
+        /*
+         * Merges all classes from elt2 into elt1 
+         */
+        function mergeClassList(elt1, elt2) {
+            [].forEach.call(elt2.classList, function (className) {
+                elt1.classList.add(className);
+            });
+        }
+
+        /*
+         * Merges all styles from elt2 into elt1 
+         */
+        function mergeStyles(elt1, elt2) {
+            for (var prop in elt2.style) {
+                if (elt2.style.hasOwnProperty(prop)) {
+                    if (elt2.style[prop] && elt2.style[prop].length) {
+                        // Don't copy over blank style rules
+                        elt1.style[prop] = elt2.style[prop];
+                    }
+                }
+            }
+        }
+
+        function newDiv() {
+            return document.createElement('div');
+        }
+
+        /* Coerces array-like object into an array */
+        function toArray(elt) {
+            return [].slice.call(elt, 0);
         }
     }, {}] }, {}, [2]);
 //# sourceMappingURL=slammer.js.map

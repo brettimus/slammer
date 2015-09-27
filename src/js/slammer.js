@@ -1,27 +1,14 @@
 "use strict";
 
-/*
- ON CONST:
-  This declaration creates a constant that can be global or local to the function in which it is declared. 
-  Constants are block-scoped. 
-  The value of a constant cannot change through re-assignment, and a constant cannot be re-declared. 
-  An initializer for a constant is required. 
-  A constant cannot share its name with a function or a variable in the same scope.
- */
-
-const Hammer = require('hammerjs');
-const SlammerNav = require("./nav");
+const Hammer          = require('hammerjs');
+const SlammerNav      = require("./nav");
+const SlammerTriptych = require("./triptych");
 
 const extend         = require('./utils').extend;
 const getTransformPercentAsNumber = require("./utils").getTransformPercentAsNumber;
-const mergeClassList = require("./utils").mergeClassList;
-const mergeStyles    = require("./utils").mergeStyles;
-const newDiv         = require("./utils").newDiv;
 const setTransform   = require("./utils").setTransform;
 const setTransition  = require("./utils").setTransition;
-
-const activeSlideClass = "slam-item-active";
-const slidePositions = ["prev", "center", "next"];
+const toArray        = require("./utils").toArray;
 
 const transitionTime = 450;
 
@@ -30,31 +17,38 @@ class Slammer {
   constructor(wrapperElt, options) {
 
     let defaults = {
-      activeSlideClass: "slam-item-active",
       transitionTime: 450,
     };
     
     this.options = extend({}, defaults, options);
+    this.slides  = toArray(wrapperElt.children);
 
-    this.slides  = [].slice.call(wrapperElt.children, 0);
-
-    // Global lock. (?? I think this short circuits event handlers _while_ a transition is occurring.)
+    // Set the global lock 
+    // * The lock helps to short circuit event handlers if a transition is in progress.
     this.lock();
 
     this.curr = 0;
-    this.prev = this.slides.length - 1;
+    this.prev = this.indexify(-1);
     this.next = 1;
 
-    this.newSlammer = null;
-    this.position = null;
+    this.nav      = null; // Populated by `createNav`
 
-    this.prevSlide = null;
-    this.currSlide = null;
-    this.nextSlide = null;
+    if (this.slides.length < 2) return;
 
-    this.nav = null;
+    this.triptych = new SlammerTriptych(this.slides);
 
-    this.slam(wrapperElt);
+    this.wrapper = wrapperElt.parentNode;
+    this.wrapper.removeChild(wrapperElt);
+    this.wrapper.appendChild(this.triptych.root);
+
+    setTransform(this.triptych.root, "translateX(0%)"); // MOVE THIS TO TRIPTYCH CLASS? (BB)
+
+    this
+      .transformTo(-1, 0, -1)
+      .acceptHammers()
+      .createNav()
+      .unlock();
+
   }
 
   createNav() {
@@ -67,29 +61,15 @@ class Slammer {
   relativeTransition(offset) {
     if (offset === 0) return;
 
-    let currentIndex = this.curr;
-    let nextIndex    = currentIndex + offset;
-
-    if (offset < 0) this.specialRetreat(nextIndex);
-    if (offset > 0) this.specialAdvance(nextIndex);
+    let nextIndex = this.curr + offset;
+    this.specialTransition(nextIndex);
   }
 
-  specialAdvance(newIndex) {
+  specialTransition(newIndex) {
     // 1. inject contents of newIndex into Next slide
     let newContent = this.slides[newIndex].innerHTML;
-    this.nextSlide.innerHTML = newContent;
+    this.triptych.nextSlide.innerHTML = newContent;
 
-    // 2. transformTo(nextIndex)
-    window.setTimeout(() => {
-      this.transformTo(this.curr, newIndex, this.options.transitionTime);
-    }, 0);
-
-  }
-
-  specialRetreat(newIndex) {
-    // 1. inject contents of newIndex into Prev slide
-    let newContent = this.slides[newIndex].innerHTML;
-    this.prevSlide.innerHTML = newContent;
     // 2. transformTo(nextIndex)
     window.setTimeout(() => {
       this.transformTo(this.curr, newIndex, this.options.transitionTime);
@@ -115,9 +95,9 @@ class Slammer {
     this.curr = newIndex;
 
     // Update current, next, and prev slides
-    this.currSlide.innerHTML = this.getSlideHTML(newIndex);
-    this.nextSlide.innerHTML = this.getSlideHTML(nextIndex);
-    this.prevSlide.innerHTML = this.getSlideHTML(prevIndex);
+    this.triptych.currSlide.innerHTML = this.getSlideHTML(newIndex);
+    this.triptych.nextSlide.innerHTML = this.getSlideHTML(nextIndex);
+    this.triptych.prevSlide.innerHTML = this.getSlideHTML(prevIndex);
 
     // Apply proper transforms to slides
     this.transformTo(newIndex, 0, 0);
@@ -128,7 +108,7 @@ class Slammer {
 
   transformTo(currIndex, nextIndex, time) {
 
-    let currTransformContent = getTransformPercentAsNumber(this.newSlammer.style.transform)
+    let currTransformContent = getTransformPercentAsNumber(this.triptych.root.style.transform) // TODO - make this a method on the triptych
 
     let offset = nextIndex - currIndex;
     let isCurrentItemLast = currIndex === this.slides.length - 1;
@@ -151,15 +131,15 @@ class Slammer {
     if (time > 0) {
       let transitionProperty = 'transform ' + transitionTime/1000 + 's';
       this.lock();
-      this.newSlammer.classList.add('slammer-transitioning');
-      setTransition(this.newSlammer, transitionProperty)
+      this.triptych.root.classList.add('slammer-transitioning');
+      setTransition(this.triptych.root, transitionProperty)
 
       // TODO - call this function when the transition end event fires instead of using setTimeout
       // (although, transitionend event has spotty browser support...)
       window.setTimeout(() => {
 
-        this.newSlammer.classList.remove('slammer-transitioning');
-        setTransition(this.newSlammer, 'transform 0s')
+        this.triptych.root.classList.remove('slammer-transitioning');
+        setTransition(this.triptych.root, 'transform 0s')
 
         this
           .injectNewSurroundingSlides(currIndex, nextIndex)
@@ -172,16 +152,15 @@ class Slammer {
       this.curr = 0;
     }
 
-    setTransform(this.newSlammer, "translateX(" + newTransformPos + "%)")
+    setTransform(this.triptych.root, "translateX(" + newTransformPos + "%)")
     return this;
   }
 
   acceptHammers() {
-    let hammer = new Hammer(this.newSlammer);
+    let hammer = new Hammer(this.triptych.root);
 
     hammer.on('swipe', (e) => {
       if (this.isLocked) return;
-
       if (e.direction === 2) {
         this.advance();
       }
@@ -192,56 +171,10 @@ class Slammer {
 
     hammer.on('tap', (e) => {
       if (this.isLocked()) return;
-
       this.advance();
     })
 
     return this;
-  }
-
-
-  /* Initializes a new slammer. */
-  slam(wrapperElt) {
-
-    if (this.slides.length < 2) return;
-
-    // create new, three-slide slammer out of curr, prev, and next
-    this.newSlammer = newDiv();
-    this.newSlammer.classList.add('slam-items');
-
-    this.prevSlide = newDiv();
-    this.currSlide = newDiv();
-    this.nextSlide = newDiv();
-
-    let slides = [this.prevSlide, this.currSlide, this.nextSlide];
-
-    slides.forEach((slide, i) => {
-
-      this.newSlammer.appendChild(slide);
-
-      let origSlideIndex = i - 1 >= 0 ? i - 1 : this.slides.length - 1; // why?
-
-      let origSlide = this.slides[origSlideIndex];
-
-      slide.innerHTML = origSlide.innerHTML;
-      mergeClassList(slide, origSlide);
-      mergeStyles(slide, origSlide);
-    });
-
-
-    this.wrapper = wrapperElt.parentNode;
-    this.wrapper.removeChild(wrapperElt);
-    this.wrapper.appendChild(this.newSlammer);
-
-    setTransform(this.newSlammer, "translateX(0%)");
-
-    this
-      .transformTo(-1, 0, -1)
-      .acceptHammers()
-      .createNav()
-      .unlock();
-
-    return;
   }
 
   // Make sure that index is in our slide range

@@ -6,6 +6,7 @@ module.exports = {
     newDiv: newDiv,
     setTransform: setTransform,
     setTransition: setTransition,
+    toArray: toArray,
 };
 
 /*
@@ -73,4 +74,9 @@ function mergeStyles(elt1, elt2) {
 
 function newDiv() {
   return document.createElement('div');
+}
+
+/* Coerces array-like object into an array */
+function toArray(elt) {
+  return [].slice.call(elt, 0);
 }
