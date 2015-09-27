@@ -6,21 +6,21 @@ class SlammerNav {
   constructor(slammer, options) {
 
     let defaults = {
+        navClass: 'slam-nav-wrap',
         navItemClass: 'slam-nav-item',
         navItemActiveClass: 'slam-nav-active'
     };
-
     this.options = extend({}, defaults, options);
-    let slides = slammer.slides;
 
     let navElt = document.createElement('nav');
-    navElt.classList.add('slam-nav-wrap');
+    navElt.classList.add(this.options.navClass);
 
     // Instead of binding click handler to each list item, 
     // we could capture events by bubbling to the main nav.
     // (Not wholly necessary, but an option.)
     let clickHandler = this.navEltHandler.bind(slammer);
 
+    let slides = slammer.slides;
     slides.forEach((slide, i) => {
       let slideElt = document.createElement('div');
       
@@ -33,26 +33,28 @@ class SlammerNav {
     });
 
     this.elt = navElt;
-    this.update(slammer.curr);
+
+    this.update(slammer.currentIndex());
     slammer.wrapper.appendChild(this.elt);
   }
 
   navEltHandler(evt) {
 
-    /*** I dislike this for the record. Not happy about it at all. ***/
+    /*** For the record I dislike what I did here. Not happy about it at all. ***/
     //
     // `this` (the context) is an instance of Slammer
     // that's why you see the use of `.bind` when the `clickHandler` is created upon unitialization
     // ... Not ideal, but it works for now!
 
-    if (this.locked) return;  
+    if (this.isLocked()) return;  
     let slideElt       = evt.target || evt.srcElement;
     let currentIndex   = this.curr;
     let nextIndex      = getSlideEltIndex(slideElt);
     let offset         = nextIndex - currentIndex;
 
-    this.nav.update(currentIndex);
-    this.relativeTransition(offset);
+    this
+      .updateNav()
+      .relativeTransition(offset);
   }
 
 

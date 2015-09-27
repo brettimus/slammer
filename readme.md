@@ -15,7 +15,7 @@ If you want to dev with it:
 - ???
 - profit
 
-##"Options"
+## "Options"
 Someday, these will be configurable defaults, but for now they're set in stone:
 
 - Slideshow expands to fill 100% of its container's width
@@ -23,11 +23,22 @@ Someday, these will be configurable defaults, but for now they're set in stone:
 - There is a nav
 
 ##Future plans
-- detecting load of injected slides and not using a timeout to perform nonadjacent slide transformations
+- ~detecting load of injected slides and not using a timeout to perform nonadjacent slide transformations~
 - load subset of Hammer instead of the entire thing
 
 
 ## Boots's notes
 
 - Compass hangs on my machine. See: https://github.com/gruntjs/grunt-contrib-compass/issues/204
-- Build is super slow for me. Is there a browserify transform for babel, or a babel transform for browserify?
+- In general, the build is super slow for me. Is there a browserify transform for babel, or a babel transform for browserify? Could speed things up.
+
+
+## Options
+
+`startingIndex: 0`
+`transitionTime: 450`
+`transitionClassName: 'slammer-transitioning'`
+
+`navClass: 'slam-nav-wrap'`
+`navItemClass: 'slam-nav-item'`
+`navItemActiveClass: 'slam-nav-active'`

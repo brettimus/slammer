@@ -2485,21 +2485,21 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 _classCallCheck(this, SlammerNav);
 
                 var defaults = {
+                    navClass: 'slam-nav-wrap',
                     navItemClass: 'slam-nav-item',
                     navItemActiveClass: 'slam-nav-active'
                 };
-
                 this.options = extend({}, defaults, options);
-                var slides = slammer.slides;
 
                 var navElt = document.createElement('nav');
-                navElt.classList.add('slam-nav-wrap');
+                navElt.classList.add(this.options.navClass);
 
                 // Instead of binding click handler to each list item,
                 // we could capture events by bubbling to the main nav.
                 // (Not wholly necessary, but an option.)
                 var clickHandler = this.navEltHandler.bind(slammer);
 
+                var slides = slammer.slides;
                 slides.forEach(function (slide, i) {
                     var slideElt = document.createElement('div');
 
@@ -2512,7 +2512,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 });
 
                 this.elt = navElt;
-                this.update(slammer.curr);
+
+                this.update(slammer.currentIndex());
                 slammer.wrapper.appendChild(this.elt);
             }
 
@@ -2522,20 +2523,19 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 key: "navEltHandler",
                 value: function navEltHandler(evt) {
 
-                    /*** I dislike this for the record. Not happy about it at all. ***/
+                    /*** For the record I dislike what I did here. Not happy about it at all. ***/
                     //
                     // `this` (the context) is an instance of Slammer
                     // that's why you see the use of `.bind` when the `clickHandler` is created upon unitialization
                     // ... Not ideal, but it works for now!
 
-                    if (this.locked) return;
+                    if (this.isLocked()) return;
                     var slideElt = evt.target || evt.srcElement;
                     var currentIndex = this.curr;
                     var nextIndex = getSlideEltIndex(slideElt);
                     var offset = nextIndex - currentIndex;
 
-                    this.nav.update(currentIndex);
-                    this.relativeTransition(offset);
+                    this.updateNav().relativeTransition(offset);
                 }
             }, {
                 key: "update",
@@ -2626,6 +2626,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 _classCallCheck(this, Slammer);
 
                 var defaults = {
+                    startingIndex: 0,
                     transitionTime: 450,
                     transitionClassName: 'slammer-transitioning'
                 };
@@ -2636,14 +2637,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 if (this.slides.length < 2) return; // This used to be in the `slam` method. Could probably remove or modify.
 
                 this.lock() // * The lock helps to short circuit event handlers if a transition is in progress.
-                .currIndex(0).prevIndex(-1).nextIndex(1).setTriptych(new SlammerTriptych(this.slides, this.options)).setWrapper(wrapperElt).acceptHammers(new Hammer(this.triptych.root)).createNav(new SlammerNav(this, this.options)).unlock();
+                .currentIndex(this.options.startingIndex).setWrapper(wrapperElt).triptych(new SlammerTriptych(this.wrapper, this.slides, this.options)).createNav(new SlammerNav(this, this.options)).acceptHammers(new Hammer(this.triptych().root)).unlock();
             }
 
             _createClass(Slammer, [{
-                key: "setTriptych",
-                value: function setTriptych(value) {
-                    this.triptych = value;
-                    this.triptych.holdSteady();
+                key: "triptych",
+                value: function triptych(value) {
+                    if (!arguments.length) return this._triptych;
+                    this._triptych = value;
                     return this;
                 }
 
@@ -2654,7 +2655,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 value: function setWrapper(elt) {
                     this.wrapper = elt.parentNode;
                     this.wrapper.removeChild(elt);
-                    this.wrapper.appendChild(this.triptych.root);
                     return this;
                 }
             }, {
@@ -2673,46 +2673,25 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 key: "relativeTransition",
                 value: function relativeTransition(offset) {
                     if (offset === 0) return;
-
-                    var nextIndex = this.curr + offset;
-                    return this.specialTransition(nextIndex);
-                }
-            }, {
-                key: "specialTransition",
-                value: function specialTransition(newIndex) {
-                    var _this3 = this;
-
-                    // 1. inject contents of newIndex into Next slide
-                    var newContents = this.getSlideHTML(newIndex);
-                    if (newIndex < this.curr) {
-                        this.triptych.prev(newContents);
-                    } else {
-                        this.triptych.next(newContents);
-                    }
-
-                    // 2. transformTo(nextIndex)
-                    window.setTimeout(function () {
-                        _this3.transformTo(newIndex, _this3.options.transitionTime);
-                    }, 10);
+                    return this.transformTo(this.currentIndex() + offset);
                 }
             }, {
                 key: "retreat",
                 value: function retreat() {
-                    this.transformTo(this.currentIndex() - 1);
+                    return this.relativeTransition(-1);
                 }
             }, {
                 key: "advance",
                 value: function advance() {
-                    this.transformTo(this.currentIndex() + 1);
+                    return this.relativeTransition(1);
                 }
             }, {
                 key: "transformTo",
                 value: function transformTo(nextIndex) {
+                    var _this3 = this;
 
                     var offset = nextIndex - this.currentIndex();
                     if (offset === 0) return;
-
-                    var direction = offset > 0 ? -1 : 1;
 
                     var html = {
                         prev: this.getSlideHTML(nextIndex - 1),
@@ -2721,10 +2700,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     };
 
                     var callback = function callback() {
-                        this.unlock().currentIndex(nextIndex).updateNav();
+                        _this3.unlock().currentIndex(nextIndex).updateNav();
                     };
 
-                    this.lock().triptych.slide(direction, html, callback.bind(this));
+                    this.lock().triptych().slide(offset, html, callback.bind(this));
 
                     return this;
                 }
@@ -2756,20 +2735,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 value: function currIndex(value) {
                     if (!arguments.length) return this.curr;
                     this.curr = this.indexify(value);
-                    return this;
-                }
-            }, {
-                key: "prevIndex",
-                value: function prevIndex(value) {
-                    if (!arguments.length) return this.prev;
-                    this.prev = this.indexify(value);
-                    return this;
-                }
-            }, {
-                key: "nextIndex",
-                value: function nextIndex(value) {
-                    if (!arguments.length) return this.next;
-                    this.next = this.indexify(value);
                     return this;
                 }
 
@@ -2819,8 +2784,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         var mergeStyles = require("./utils").mergeStyles;
         var newDiv = require("./utils").newDiv;
 
+        var translationConstant = 1 / 3 * 100;
+
         var SlammerTriptych = (function () {
-            function SlammerTriptych(baseSlides, options) {
+            function SlammerTriptych(wrapper, baseSlides, options) {
                 var _this5 = this;
 
                 _classCallCheck(this, SlammerTriptych);
@@ -2845,6 +2812,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     mergeClassList(slide, origSlide);
                     mergeStyles(slide, origSlide);
                 });
+
+                wrapper.appendChild(this.root);
+                this.center();
             }
 
             _createClass(SlammerTriptych, [{
@@ -2853,31 +2823,37 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     return [this.prevSlide, this.currSlide, this.nextSlide];
                 }
             }, {
-                key: "holdSteady",
-                value: function holdSteady() {
-                    var newTransformPos = 1 / 3 * -100;
-                    this.translateXPercent(newTransformPos);
+                key: "center",
+                value: function center() {
+                    this.translateXPercent(-translationConstant);
                     return this;
                 }
             }, {
                 key: "slide",
-                value: function slide(direction, html, callback) {
+                value: function slide(offset, html, callback) {
                     var _this6 = this;
 
-                    var translation = this.translateXPercent() + direction * (1 / 3) * 100;
+                    if (offset === 0) return;
+                    if (offset < -1) this.prev(html.curr);
+                    if (offset > 1) this.next(html.curr);
+
+                    var direction = this.direction(offset);
+                    var translation = this.translateXPercent() + direction * translationConstant;
+
                     this.addClass(this.transitionClassName).transition('transform ' + this.transitionTime / 1000 + 's').translateXPercent(translation);
 
-                    window.setTimeout(function () {
-                        _this6.removeClass(_this6.transitionClassName).transition('transform 0s').injectHTML(html).holdSteady();
-
+                    var transitionEnd = function transitionEnd() {
+                        _this6.removeClass(_this6.transitionClassName).transition('transform 0s').injectHTML(html).center();
                         if (callback) callback();
-                    }, this.transitionTime);
+                    };
+
+                    setTimeout(transitionEnd, this.transitionTime);
                     return this;
                 }
             }, {
                 key: "injectHTML",
-                value: function injectHTML(vals) {
-                    this.current(vals.curr).next(vals.next).prev(vals.prev);
+                value: function injectHTML(html) {
+                    this.current(html.curr).next(html.next).prev(html.prev);
 
                     return this;
                 }
@@ -2945,6 +2921,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     this.root.style.WebkitTransition = value;
                     this.root.style.transition = value;
                     return this;
+                }
+            }, {
+                key: "direction",
+                value: function direction(offset) {
+                    return offset > 0 ? -1 : 1;
                 }
             }]);
 

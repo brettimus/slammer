@@ -23,6 +23,7 @@ class Slammer {
   constructor(wrapperElt, options) {
 
     let defaults = {
+      startingIndex: 0,
       transitionTime: 450,
       transitionClassName: 'slammer-transitioning',
     };
@@ -34,20 +35,18 @@ class Slammer {
 
     this
       .lock()        // * The lock helps to short circuit event handlers if a transition is in progress.
-      .currIndex(0)
-      .prevIndex(-1)
-      .nextIndex(1)
-      .setTriptych(new SlammerTriptych(this.slides, this.options))
+      .currentIndex(this.options.startingIndex)
       .setWrapper(wrapperElt)
-      .acceptHammers(new Hammer(this.triptych.root))
+      .triptych(new SlammerTriptych(this.wrapper, this.slides, this.options))
       .createNav(new SlammerNav(this, this.options))
+      .acceptHammers(new Hammer(this.triptych().root))
       .unlock();
 
   }
 
-  setTriptych(value) {
-    this.triptych = value;
-    this.triptych.holdSteady();
+  triptych(value) {
+    if (!arguments.length) return this._triptych;
+    this._triptych = value;
     return this;
   }
 
@@ -56,7 +55,6 @@ class Slammer {
   setWrapper(elt) {
     this.wrapper = elt.parentNode;
     this.wrapper.removeChild(elt);
-    this.wrapper.appendChild(this.triptych.root);
     return this;
   }
 
@@ -72,34 +70,15 @@ class Slammer {
 
   relativeTransition(offset) {
     if (offset === 0) return;
-
-    let nextIndex = this.curr + offset;
-    return this.specialTransition(nextIndex);
-  }
-
-  specialTransition(newIndex) {
-    
-    // 1. inject contents of newIndex into Next slide
-    let newContents = this.getSlideHTML(newIndex);
-    if (newIndex < this.curr) {
-      this.triptych.prev(newContents)
-    }
-    else {
-      this.triptych.next(newContents);
-    }
-
-    // 2. transformTo(nextIndex)
-    window.setTimeout(() => {
-      this.transformTo(newIndex, this.options.transitionTime);
-    }, 10);
+    return this.transformTo(this.currentIndex() + offset);
   }
 
   retreat() {
-    this.transformTo(this.currentIndex() - 1);
+    return this.relativeTransition(-1);
   }
 
   advance() {
-    this.transformTo(this.currentIndex() + 1);
+    return this.relativeTransition(1);
   }
 
   transformTo(nextIndex) {
@@ -107,15 +86,13 @@ class Slammer {
     let offset = nextIndex - this.currentIndex();
     if (offset === 0) return;
 
-    let direction = offset > 0 ? -1 : 1;
-
     let html = {
       prev: this.getSlideHTML(nextIndex - 1),
       curr: this.getSlideHTML(nextIndex),
       next: this.getSlideHTML(nextIndex + 1),
     };
 
-    let callback = function() {
+    let callback = () => {
       this
         .unlock()
         .currentIndex(nextIndex)
@@ -124,8 +101,8 @@ class Slammer {
 
     this
       .lock()
-      .triptych
-        .slide(direction, html, callback.bind(this));
+      .triptych()
+        .slide(offset, html, callback.bind(this));
 
     return this;
   }
@@ -155,18 +132,6 @@ class Slammer {
   currIndex(value) {
     if (!arguments.length) return this.curr;
     this.curr = this.indexify(value);
-    return this;
-  }
-
-  prevIndex(value) {
-    if (!arguments.length) return this.prev;
-    this.prev = this.indexify(value);
-    return this;
-  }
-
-  nextIndex(value) {
-    if (!arguments.length) return this.next;
-    this.next = this.indexify(value);
     return this;
   }
 
