@@ -52,9 +52,9 @@ class Slammer {
   }
 
   swipeHandler(direction) {
-      if (this.isLocked()) return;
-      if (direction > 0) this.advance();
-      if (direction < 0) this.retreat();
+    if (this.isLocked()) return;
+    if (direction > 0) this.advance();
+    if (direction < 0) this.retreat();
   }
 
   tapHandler() {

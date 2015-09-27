@@ -141,9 +141,9 @@ class SlammerTriptych {
   swipe(callback) {
     this.hammer().on('swipe', (evt) => {
       if (evt.direction === 2)
-        callback(1);
-      if (evt.direction === 4)
         callback(-1);
+      if (evt.direction === 4)
+        callback(1);
     });
     return this;
   }

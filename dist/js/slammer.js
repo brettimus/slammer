@@ -2953,8 +2953,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 key: "swipe",
                 value: function swipe(callback) {
                     this.hammer().on('swipe', function (evt) {
-                        if (evt.direction === 2) callback(1);
-                        if (evt.direction === 4) callback(-1);
+                        if (evt.direction === 2) callback(-1);
+                        if (evt.direction === 4) callback(1);
                     });
                     return this;
                 }
