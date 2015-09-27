@@ -1,5 +1,6 @@
 // NYI
 // This should replace the "newSlammer" property in slammer
+const Hammer = require('hammerjs');
 
 const mergeClassList = require("./utils").mergeClassList;
 const mergeStyles    = require("./utils").mergeStyles;
@@ -14,7 +15,8 @@ class SlammerTriptych {
     this.transitionTime = options.transitionTime;
 
     this
-      .setRoot('slam-items')
+      .setRoot() // TODO - configure className
+      .setHammer()
       .transform("translateX(0%)")
       .slides()
       .forEach((slide, i) => {
@@ -35,6 +37,8 @@ class SlammerTriptych {
   }
 
   slides() {
+    // I don't like what I did here.
+    // It's obfuscating what's going on.
     this.prevSlide = this.prevSlide || newDiv();
     this.currSlide = this.currSlide || newDiv();
     this.nextSlide = this.nextSlide || newDiv();
@@ -99,9 +103,29 @@ class SlammerTriptych {
     return this
   }
 
-  setRoot(className) {
+  setRoot() {
     this.root = newDiv()
-    this.root.classList.add(className);
+    this.root.classList.add('slam-items');
+    return this;
+  }
+
+  setHammer() {
+    this.hammer = new Hammer(this.root);
+    return this;
+  }
+
+  swipe(callback) {
+    this.hammer.on('swipe', (evt) => {
+      if (evt.direction === 2)
+        callback(1);
+      if (evt.direction === 4)
+        callback(-1);
+    });
+    return this;
+  }
+
+  tap(callback) {
+    this.hammer.on('tap', callback)
     return this;
   }
 

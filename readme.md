@@ -31,6 +31,7 @@ Someday, these will be configurable defaults, but for now they're set in stone:
 
 - Compass hangs on my machine. See: https://github.com/gruntjs/grunt-contrib-compass/issues/204
 - In general, the build is super slow for me. Is there a browserify transform for babel, or a babel transform for browserify? Could speed things up.
+- ~Should add a `touchend` listener to the nav items as well~ Used `Hammer` instead! 
 
 
 ## Options

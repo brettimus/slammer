@@ -2475,13 +2475,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             var slammer = new Slammer(slammers[_i]);
         }
     }, { "./slammer": 4 }], 3: [function (require, module, exports) {
+        var Hammer = require('hammerjs');
 
         var extend = require("./utils").extend;
+        var newDiv = require("./utils").newDiv;
 
         var SlammerNav = (function () {
-            function SlammerNav(slammer, options) {
-                var _this = this;
-
+            function SlammerNav(wrapper, slides, options) {
                 _classCallCheck(this, SlammerNav);
 
                 var defaults = {
@@ -2490,92 +2490,104 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     navItemActiveClass: 'slam-nav-active'
                 };
                 this.options = extend({}, defaults, options);
+                this.navClass = this.options.navClass;
+                this.navItemClass = this.options.navItemClass;
+                this.navItemActiveClass = this.options.navItemActiveClass;
 
-                var navElt = document.createElement('nav');
-                navElt.classList.add(this.options.navClass);
-                this.root = navElt;
+                this.setRoot().setHammer().setItems(slides).update(this.options.startingIndex); // sketchy but passable...
 
-                // Instead of binding click handler to each list item,
-                // we could capture events by bubbling to the main nav.
-                // (Not wholly necessary, but an option.)
-                var clickHandler = this.navEltHandler.bind(slammer);
-
-                var slides = slammer.slides;
-                slides.forEach(function (slide, i) {
-
-                    var navItem = document.createElement('div');
-                    navItem.addEventListener('click', clickHandler);
-
-                    _this.setNavItemIndex(navItem, i).addItem(navItem);
-                });
-
-                this.update(slammer.currentIndex());
-                slammer.wrapper.appendChild(this.root);
+                wrapper.appendChild(this.root);
             }
 
             _createClass(SlammerNav, [{
-                key: "navEltHandler",
-                value: function navEltHandler(evt) {
+                key: "setRoot",
+                value: function setRoot() {
+                    var navElt = document.createElement('nav');
+                    navElt.classList.add(this.navClass);
+                    this.root = navElt;
+                    return this;
+                }
+            }, {
+                key: "setHammer",
+                value: function setHammer() {
+                    this.hammer = new Hammer(this.root);
+                    return this;
+                }
+            }, {
+                key: "setItems",
+                value: function setItems(slides) {
+                    var _this = this;
 
-                    /*** For the record I dislike what I did here. Not happy about it at all. ***/
-                    //
-                    // `this` (the context) is an instance of Slammer
-                    // that's why you see the use of `.bind` when the `clickHandler` is created upon unitialization
-                    // ... Not ideal, but it works for now!
+                    // Right now, the only thing we really care about with these slides is their index.
+                    slides.forEach(function (slide, i) {
+                        _this.addItem(i);
+                    });
+                    return this;
+                }
+            }, {
+                key: "click",
+                value: function click(callback) {
+                    var _this2 = this;
 
-                    if (this.isLocked()) return;
-                    var navItem = evt.target || evt.srcElement;
-                    var nextIndex = this.nav.getNavItemIndex(navItem);
-                    var offset = nextIndex - this.currentIndex();
+                    var clickEventProxy = function clickEventProxy(evt) {
+                        var navItem = evt.target || evt.srcElement;
+                        var index = _this2.getNavItemIndex(navItem);
+                        if (callback) callback(index);
+                    };
 
-                    this.updateNav().relativeTransition(offset);
+                    this.hammer.on("tap", clickEventProxy.bind(this));
+
+                    return this;
                 }
             }, {
                 key: "update",
                 value: function update(currentIndex) {
-                    var _this2 = this;
+                    var _this3 = this;
 
-                    var navItems = this.getItems();
-
-                    [].forEach.call(navItems, function (item, index) {
-
-                        if (_this2.isActiveItem(item)) {
-                            _this2.deactivateItem(item);
-                        } else if (index === currentIndex) {
-                            _this2.activateItem(item);
+                    this.forEachItem(function (item, index) {
+                        if (index === currentIndex) {
+                            _this3.activateItem(item);
+                            return;
                         }
+                        _this3.deactivateItem(item);
                     });
 
                     return this;
                 }
             }, {
                 key: "addItem",
-                value: function addItem(navItem) {
-                    navItem.classList.add(this.options.navItemClass);
+                value: function addItem(index) {
+                    var navItem = newDiv();
+                    navItem.classList.add(this.navItemClass);
+
+                    this.setNavItemIndex(navItem, index);
                     this.root.appendChild(navItem);
+
                     return this;
                 }
             }, {
-                key: "getItems",
-                value: function getItems() {
-                    return this.root.children;
+                key: "forEachItem",
+                value: function forEachItem(fun) {
+                    var items = [].slice.call(this.root.children, 0);
+                    items.forEach(fun, this);
+                    return this;
                 }
             }, {
                 key: "isActiveItem",
                 value: function isActiveItem(item) {
-                    var activeClass = this.options.navItemActiveClass;
+                    var activeClass = this.navItemActiveClass;
                     return item.classList.contains(activeClass);
                 }
             }, {
                 key: "activateItem",
                 value: function activateItem(item) {
-                    var activeClass = this.options.navItemActiveClass;
+                    var activeClass = this.navItemActiveClass;
                     item.classList.add(activeClass);
                 }
             }, {
                 key: "deactivateItem",
                 value: function deactivateItem(item) {
-                    var activeClass = this.options.navItemActiveClass;
+                    var activeClass = this.navItemActiveClass;
                     item.classList.remove(activeClass);
                 }
             }, {
@@ -2598,26 +2610,23 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         })();
 
         module.exports = SlammerNav;
-    }, { "./utils": 6 }], 4: [function (require, module, exports) {
+    }, { "./utils": 6, "hammerjs": 1 }], 4: [function (require, module, exports) {
         "use strict";
 
         /*** NOTES ***
          *
          * Slammer should have a Nav and a Triptych
          * 
-         * For each transition, the Triptych should be injected with information about the new slides
-         * I.e.,
-         *   The Slammer should tell the Triptych how to update itself,
-         *     then the Slammer should tell the triptych to transition.
+         * For each transition, the Triptych is injected with information about the new slides.
          *
          */
 
-        var Hammer = require('hammerjs');
-        var SlammerNav = require("./nav");
-        var SlammerTriptych = require("./triptych");
+        var SlammerNav = require('./nav');
+        var SlammerTriptych = require('./triptych');
 
         var extend = require('./utils').extend;
-        var toArray = require("./utils").toArray;
+        var isNumeric = require('./utils').isNumeric;
+        var toArray = require('./utils').toArray;
 
         var Slammer = (function () {
             function Slammer(wrapperElt, options) {
@@ -2634,38 +2643,61 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                 if (this.slides.length < 2) return; // This used to be in the `slam` method. Could probably remove or modify.
 
-                this.lock() // * The lock helps to short circuit event handlers if a transition is in progress.
-                .currentIndex(this.options.startingIndex).setWrapper(wrapperElt).triptych(new SlammerTriptych(this.wrapper, this.slides, this.options)).createNav(new SlammerNav(this, this.options)).addNavEvents() // NYI
-                .addHammerEvents(new Hammer(this.triptych().root)).unlock();
+                this.lock() // The lock helps to short circuit event handlers if a transition is in progress.
+                .currentIndex(this.options.startingIndex).wrapper(wrapperElt).triptych(new SlammerTriptych(this.wrapper(), this.slides, this.options)).nav(new SlammerNav(this.wrapper(), this.slides, this.options)).unlock();
             }
 
             _createClass(Slammer, [{
                 key: "triptych",
                 value: function triptych(value) {
                     if (!arguments.length) return this._triptych;
+                    value.swipe(this.swipeHandler.bind(this)).tap(this.tapHandler.bind(this));
                     this._triptych = value;
                     return this;
                 }
-
-                // TODO - get rid of setWrapper and createNav
-                // (notice how they are the only ones that use `this.wrapper`)
             }, {
-                key: "setWrapper",
-                value: function setWrapper(elt) {
-                    this.wrapper = elt.parentNode;
-                    this.wrapper.removeChild(elt);
+                key: "swipeHandler",
+                value: function swipeHandler(direction) {
+                    if (this.isLocked()) return;
+                    if (direction > 0) this.advance();
+                    if (direction < 0) this.retreat();
+                }
+            }, {
+                key: "tapHandler",
+                value: function tapHandler() {
+                    if (this.isLocked()) return;
+                    this.advance();
+                }
+            }, {
+                key: "wrapper",
+                value: function wrapper(elt) {
+                    if (!arguments.length) return this._wrapper;
+                    this._wrapper = elt.parentNode;
+                    this._wrapper.removeChild(elt);
                     return this;
                 }
             }, {
-                key: "createNav",
-                value: function createNav(value) {
-                    this.nav = value;
+                key: "nav",
+                value: function nav(value) {
+                    if (!arguments.length) return this._nav;
+                    value.click(this.navEltHandler.bind(this));
+                    this._nav = value;
                     return this;
+                }
+            }, {
+                key: "navEltHandler",
+                value: function navEltHandler(index) {
+                    if (this.isLocked()) return;
+                    if (isNumeric(index)) {
+                        this.transformTo(index);
+                    } else {
+                        // This means the list container was clicked, but no specific list item was clicked
+                    }
                 }
             }, {
                 key: "updateNav",
                 value: function updateNav() {
-                    this.nav.update(this.currentIndex());
+                    this.nav().update(this.currentIndex());
                     return this;
                 }
             }, {
@@ -2687,8 +2719,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "transformTo",
                 value: function transformTo(nextIndex) {
-                    var _this3 = this;
+                    var _this4 = this;
 
+                    nextIndex = this.indexify(nextIndex);
                     var offset = nextIndex - this.currentIndex();
                     if (offset === 0) return;
 
@@ -2699,34 +2732,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     };
 
                     var callback = function callback() {
-                        _this3.unlock().currentIndex(nextIndex).updateNav();
+                        _this4.unlock().currentIndex(nextIndex).updateNav();
                     };
 
                     this.lock().triptych().slide(offset, html, callback.bind(this));
-
-                    return this;
-                }
-            }, {
-                key: "addNavEvents",
-                value: function addNavEvents() {
-                    // NYI
-                    return this;
-                }
-            }, {
-                key: "addHammerEvents",
-                value: function addHammerEvents(hammer) {
-                    var _this4 = this;
-
-                    hammer.on('swipe', function (e) {
-                        if (_this4.isLocked()) return;
-                        if (e.direction === 2) _this4.advance();
-                        if (e.direction === 4) _this4.retreat();
-                    });
-
-                    hammer.on('tap', function (e) {
-                        if (_this4.isLocked()) return;
-                        _this4.advance();
-                    });
 
                     return this;
                 }
@@ -2781,9 +2790,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         })();
 
         module.exports = Slammer;
-    }, { "./nav": 3, "./triptych": 5, "./utils": 6, "hammerjs": 1 }], 5: [function (require, module, exports) {
+    }, { "./nav": 3, "./triptych": 5, "./utils": 6 }], 5: [function (require, module, exports) {
         // NYI
         // This should replace the "newSlammer" property in slammer
+        var Hammer = require('hammerjs');
 
         var mergeClassList = require("./utils").mergeClassList;
         var mergeStyles = require("./utils").mergeStyles;
@@ -2800,7 +2810,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 this.transitionClassName = options.transitionClassName;
                 this.transitionTime = options.transitionTime;
 
-                this.setRoot('slam-items').transform("translateX(0%)").slides().forEach(function (slide, i) {
+                this.setRoot() // TODO - configure className
+                .setHammer().transform("translateX(0%)").slides().forEach(function (slide, i) {
 
                     _this5.root.appendChild(slide);
 
@@ -2820,6 +2831,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             _createClass(SlammerTriptych, [{
                 key: "slides",
                 value: function slides() {
+                    // I don't like what I did here.
+                    // It's obfuscating what's going on.
                     this.prevSlide = this.prevSlide || newDiv();
                     this.currSlide = this.currSlide || newDiv();
                     this.nextSlide = this.nextSlide || newDiv();
@@ -2883,9 +2896,30 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 }
             }, {
                 key: "setRoot",
-                value: function setRoot(className) {
+                value: function setRoot() {
                     this.root = newDiv();
-                    this.root.classList.add(className);
+                    this.root.classList.add('slam-items');
+                    return this;
+                }
+            }, {
+                key: "setHammer",
+                value: function setHammer() {
+                    this.hammer = new Hammer(this.root);
+                    return this;
+                }
+            }, {
+                key: "swipe",
+                value: function swipe(callback) {
+                    this.hammer.on('swipe', function (evt) {
+                        if (evt.direction === 2) callback(1);
+                        if (evt.direction === 4) callback(-1);
+                    });
+                    return this;
+                }
+            }, {
+                key: "tap",
+                value: function tap(callback) {
+                    this.hammer.on('tap', callback);
                     return this;
                 }
             }, {
@@ -2936,9 +2970,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         })();
 
         module.exports = SlammerTriptych;
-    }, { "./utils": 6 }], 6: [function (require, module, exports) {
+    }, { "./utils": 6, "hammerjs": 1 }], 6: [function (require, module, exports) {
         module.exports = {
             extend: extend,
+            isNumeric: isNumeric,
             mergeClassList: mergeClassList,
             mergeStyles: mergeStyles,
             newDiv: newDiv,
@@ -2961,6 +2996,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             });
 
             return result;
+        }
+
+        function isNumeric(n) {
+            return !isNaN(parseFloat(n)) && isFinite(n);
         }
 
         /*

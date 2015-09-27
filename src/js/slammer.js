@@ -4,19 +4,16 @@
  *
  * Slammer should have a Nav and a Triptych
  * 
- * For each transition, the Triptych should be injected with information about the new slides
- * I.e.,
- *   The Slammer should tell the Triptych how to update itself,
- *     then the Slammer should tell the triptych to transition.
+ * For each transition, the Triptych is injected with information about the new slides.
  *
  */
 
-const Hammer          = require('hammerjs');
-const SlammerNav      = require("./nav");
-const SlammerTriptych = require("./triptych");
+const SlammerNav      = require('./nav');
+const SlammerTriptych = require('./triptych');
 
 const extend         = require('./utils').extend;
-const toArray        = require("./utils").toArray;
+const isNumeric      = require('./utils').isNumeric;
+const toArray        = require('./utils').toArray;
 
 class Slammer {
 
@@ -34,38 +31,60 @@ class Slammer {
     if (this.slides.length < 2) return; // This used to be in the `slam` method. Could probably remove or modify.
 
     this
-      .lock()        // * The lock helps to short circuit event handlers if a transition is in progress.
+      .lock()        // The lock helps to short circuit event handlers if a transition is in progress.
       .currentIndex(this.options.startingIndex)
-      .setWrapper(wrapperElt)
-      .triptych(new SlammerTriptych(this.wrapper, this.slides, this.options))
-      .createNav(new SlammerNav(this, this.options))
-      .addNavEvents() // NYI
-      .addHammerEvents(new Hammer(this.triptych().root))
+      .wrapper(wrapperElt)
+      .triptych(new SlammerTriptych(this.wrapper(), this.slides, this.options))
+      .nav(new SlammerNav(this.wrapper(), this.slides, this.options))
       .unlock();
-
   }
 
   triptych(value) {
     if (!arguments.length) return this._triptych;
+    value
+      .swipe(this.swipeHandler.bind(this))
+      .tap(this.tapHandler.bind(this));
     this._triptych = value;
     return this;
   }
 
-  // TODO - get rid of setWrapper and createNav
-  // (notice how they are the only ones that use `this.wrapper`)
-  setWrapper(elt) {
-    this.wrapper = elt.parentNode;
-    this.wrapper.removeChild(elt);
+  swipeHandler(direction) {
+      if (this.isLocked()) return;
+      if (direction > 0) this.advance();
+      if (direction < 0) this.retreat();
+  }
+
+  tapHandler() {
+    if (this.isLocked()) return;
+    this.advance();
+  }
+
+  wrapper(elt) {
+    if (!arguments.length) return this._wrapper;
+    this._wrapper = elt.parentNode;
+    this._wrapper.removeChild(elt);
     return this;
   }
 
-  createNav(value) {
-    this.nav = value;
+  nav(value) {
+    if (!arguments.length) return this._nav;
+    value.click(this.navEltHandler.bind(this))
+    this._nav = value;
     return this;
+  }
+
+  navEltHandler(index) {
+    if (this.isLocked()) return;
+    if (isNumeric(index)) {
+      this.transformTo(index);
+    }
+    else {
+      // This means the list container was clicked, but no specific list item was clicked
+    }
   }
 
   updateNav() {
-    this.nav.update(this.currentIndex());
+    this.nav().update(this.currentIndex());
     return this;
   }
 
@@ -83,7 +102,7 @@ class Slammer {
   }
 
   transformTo(nextIndex) {
-
+    nextIndex = this.indexify(nextIndex);
     let offset = nextIndex - this.currentIndex();
     if (offset === 0) return;
 
@@ -108,28 +127,6 @@ class Slammer {
     return this;
   }
 
-  addNavEvents() {
-    // NYI
-    return this;
-  }
-
-  addHammerEvents(hammer) {
-    hammer.on('swipe', (e) => {
-      if (this.isLocked())
-        return;
-      if (e.direction === 2)
-        this.advance();
-      if (e.direction === 4)
-        this.retreat();
-    });
-
-    hammer.on('tap', (e) => {
-      if (this.isLocked()) return;
-      this.advance();
-    })
-
-    return this;
-  }
 
   currentIndex(value) {
     return this.currIndex.apply(this, arguments);

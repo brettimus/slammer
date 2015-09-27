@@ -1,9 +1,11 @@
+const Hammer = require('hammerjs');
 
 const extend = require("./utils").extend;
+const newDiv = require("./utils").newDiv;
 
 class SlammerNav {
 
-  constructor(slammer, options) {
+  constructor(wrapper, slides, options) {
 
     let defaults = {
         navClass: 'slam-nav-wrap',
@@ -11,90 +13,92 @@ class SlammerNav {
         navItemActiveClass: 'slam-nav-active'
     };
     this.options = extend({}, defaults, options);
-
-    let navElt = document.createElement('nav');
-    navElt.classList.add(this.options.navClass);
-    this.root = navElt;
-
-    // Instead of binding click handler to each list item, 
-    // we could capture events by bubbling to the main nav.
-    // (Not wholly necessary, but an option.)
-    let clickHandler = this.navEltHandler.bind(slammer);
-
-    let slides = slammer.slides;
-    slides.forEach((slide, i) => {
-
-      let navItem = document.createElement('div');
-      navItem.addEventListener('click', clickHandler)
-      
-      this
-        .setNavItemIndex(navItem, i)
-        .addItem(navItem);
-    });
-
-    this.update(slammer.currentIndex());
-    slammer.wrapper.appendChild(this.root);
-  }
-
-  navEltHandler(evt) {
-
-    /*** For the record I dislike what I did here. Not happy about it at all. ***/
-    //
-    // `this` (the context) is an instance of Slammer
-    // that's why you see the use of `.bind` when the `clickHandler` is created upon unitialization
-    // ... Not ideal, but it works for now!
-
-    if (this.isLocked()) return;  
-    let navItem      = evt.target || evt.srcElement;
-    let nextIndex    = this.nav.getNavItemIndex(navItem);
-    let offset       = nextIndex - this.currentIndex();
+    this.navClass = this.options.navClass;
+    this.navItemClass = this.options.navItemClass;
+    this.navItemActiveClass = this.options.navItemActiveClass;
 
     this
-      .updateNav()
-      .relativeTransition(offset);
+      .setRoot()
+      .setHammer()
+      .setItems(slides)
+      .update(this.options.startingIndex); // sketchy but passable...
+
+    wrapper.appendChild(this.root);
   }
 
+  setRoot() {
+    let navElt = document.createElement('nav');
+    navElt.classList.add(this.navClass);
+    this.root = navElt;
+    return this;
+  }
+
+  setHammer() {
+    this.hammer = new Hammer(this.root);
+    return this;
+  }
+
+  setItems(slides) {
+    // Right now, the only thing we really care about with these slides is their index.
+    slides.forEach((slide, i) => {
+      this.addItem(i);
+    });
+    return this;
+  }
+
+  click(callback) {
+    let clickEventProxy = (evt) => {
+      let navItem = evt.target || evt.srcElement;
+      let index   = this.getNavItemIndex(navItem);
+      if (callback) callback(index);
+    };
+
+    this.hammer.on("tap", clickEventProxy.bind(this));
+
+    return this;
+  }
 
   update(currentIndex) {
-
-    let navItems = this.getItems();
-    
-    [].forEach.call(navItems, (item, index) => {
-
-      if (this.isActiveItem(item)) {
+    this
+      .forEachItem((item, index) => {
+        if (index === currentIndex) {
+          this.activateItem(item);
+          return;
+        }
         this.deactivateItem(item);
-      }
-      else if (index === currentIndex) {
-        this.activateItem(item);
-      }
-
-    });
+      });
 
     return this;
   }
 
-  addItem(navItem) {
-    navItem.classList.add(this.options.navItemClass);
+  addItem(index) {
+    let navItem = newDiv();
+    navItem.classList.add(this.navItemClass);
+
+    this.setNavItemIndex(navItem, index)
     this.root.appendChild(navItem);
+
     return this;
   }
 
-  getItems() {
-    return this.root.children;
+  forEachItem(fun) {
+    let items = [].slice.call(this.root.children, 0);
+    items.forEach(fun, this);
+    return this;
   }
 
   isActiveItem(item) {
-    let activeClass = this.options.navItemActiveClass;
+    let activeClass = this.navItemActiveClass;
     return item.classList.contains(activeClass)
   }
 
   activateItem(item) {
-    let activeClass = this.options.navItemActiveClass;
+    let activeClass = this.navItemActiveClass;
     item.classList.add(activeClass);
   }
 
   deactivateItem(item) {
-    let activeClass = this.options.navItemActiveClass;
+    let activeClass = this.navItemActiveClass;
     item.classList.remove(activeClass);
   }
 

@@ -1,5 +1,6 @@
 module.exports = {
     extend: extend,
+    isNumeric: isNumeric,
     mergeClassList: mergeClassList,
     mergeStyles: mergeStyles,
     newDiv: newDiv,
@@ -22,6 +23,10 @@ function extend() {
   });
 
   return result;
+}
+
+function isNumeric(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
 /*
