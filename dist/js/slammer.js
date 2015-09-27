@@ -2598,6 +2598,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     }, { "./utils": 6 }], 4: [function (require, module, exports) {
         "use strict";
 
+        /*** NOTES ***
+         *
+         * Slammer should have a Nav and a Triptych
+         * 
+         * For each transition, the Triptych should be injected with information about the new slides
+         * I.e.,
+         *   The Slammer should tell the Triptych how to update itself,
+         *     then the Slammer should tell the triptych to transition.
+         *
+         */
+
         var Hammer = require('hammerjs');
         var SlammerNav = require("./nav");
         var SlammerTriptych = require("./triptych");
@@ -2639,7 +2650,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 this.wrapper.removeChild(wrapperElt);
                 this.wrapper.appendChild(this.triptych.root);
 
-                setTransform(this.triptych.root, "translateX(0%)"); // MOVE THIS TO TRIPTYCH CLASS? (BB)
+                setTransform(this.triptych.root, "translateX(0%)"); // Move to Triptych class (BB)
 
                 this.transformTo(-1, 0, -1).acceptHammers().createNav().unlock();
             }
@@ -2687,7 +2698,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     this.transformTo(this.curr, newIndex, this.options.transitionTime);
                 }
 
-                // TODO - move to triptych
+                // TODO - move a variant of this to triptych
             }, {
                 key: "injectNewSurroundingSlides",
                 value: function injectNewSurroundingSlides(currIndex, newIndex) {
@@ -2762,7 +2773,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var hammer = new Hammer(this.triptych.root);
 
                     hammer.on('swipe', function (e) {
-                        if (_this5.isLocked) return;
+                        if (_this5.isLocked()) return;
                         if (e.direction === 2) {
                             _this5.advance();
                         }

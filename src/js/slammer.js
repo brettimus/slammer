@@ -1,5 +1,16 @@
 "use strict";
 
+/*** NOTES ***
+ *
+ * Slammer should have a Nav and a Triptych
+ * 
+ * For each transition, the Triptych should be injected with information about the new slides
+ * I.e.,
+ *   The Slammer should tell the Triptych how to update itself,
+ *     then the Slammer should tell the triptych to transition.
+ *
+ */
+
 const Hammer          = require('hammerjs');
 const SlammerNav      = require("./nav");
 const SlammerTriptych = require("./triptych");
@@ -31,7 +42,7 @@ class Slammer {
     this.prev = this.indexify(-1);
     this.next = 1;
 
-    this.nav      = null; // Populated by `createNav`
+    this.nav = null; // Populated by `createNav`
 
     if (this.slides.length < 2) return;
 
@@ -41,7 +52,7 @@ class Slammer {
     this.wrapper.removeChild(wrapperElt);
     this.wrapper.appendChild(this.triptych.root);
 
-    setTransform(this.triptych.root, "translateX(0%)"); // MOVE THIS TO TRIPTYCH CLASS? (BB)
+    setTransform(this.triptych.root, "translateX(0%)"); // Move to Triptych class (BB)
 
     this
       .transformTo(-1, 0, -1)
@@ -86,7 +97,7 @@ class Slammer {
     this.transformTo(this.curr, newIndex, this.options.transitionTime);
   }
 
-  // TODO - move to triptych
+  // TODO - move a variant of this to triptych
   injectNewSurroundingSlides(currIndex, newIndex) {
     newIndex        = this.indexify(newIndex);
     const nextIndex = this.indexify(newIndex + 1);
