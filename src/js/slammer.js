@@ -86,6 +86,7 @@ class Slammer {
     this.transformTo(this.curr, newIndex, this.options.transitionTime);
   }
 
+  // TODO - move to triptych
   injectNewSurroundingSlides(currIndex, newIndex) {
     newIndex        = this.indexify(newIndex);
     const nextIndex = this.indexify(newIndex + 1);
@@ -160,7 +161,7 @@ class Slammer {
     let hammer = new Hammer(this.triptych.root);
 
     hammer.on('swipe', (e) => {
-      if (this.isLocked) return;
+      if (this.isLocked()) return;
       if (e.direction === 2) {
         this.advance();
       }

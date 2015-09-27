@@ -30,7 +30,6 @@ class SlammerTriptych {
     });
   }
 
-
 }
 
 module.exports = SlammerTriptych;

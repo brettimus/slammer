@@ -2686,6 +2686,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var newIndex = this.curr + 1;
                     this.transformTo(this.curr, newIndex, this.options.transitionTime);
                 }
+
+                // TODO - move to triptych
             }, {
                 key: "injectNewSurroundingSlides",
                 value: function injectNewSurroundingSlides(currIndex, newIndex) {
