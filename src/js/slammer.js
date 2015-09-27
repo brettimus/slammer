@@ -104,12 +104,13 @@ class Slammer {
     this.curr = newIndex;
 
     // Update current, next, and prev slides
-    this.triptych.currSlide.innerHTML = this.getSlideHTML(newIndex);
-    this.triptych.nextSlide.innerHTML = this.getSlideHTML(nextIndex);
-    this.triptych.prevSlide.innerHTML = this.getSlideHTML(prevIndex);
+    this.triptych
+        .current(this.getSlideHTML(newIndex))
+        .next(this.getSlideHTML(nextIndex))
+        .prev(this.getSlideHTML(prevIndex));
 
-    // Apply proper transforms to slides
-    this.transformTo(newIndex, 0, 0);
+    // Apply transforms to slides
+    this.transformTo(newIndex, 0, 0); // This should be on the triptych... but we've other things to do before that.
     this.nav.update(this.curr);
 
     return this;
@@ -117,7 +118,7 @@ class Slammer {
 
   transformTo(currIndex, nextIndex, time) {
 
-    let currTransformContent = getTransformPercentAsNumber(this.triptych.root.style.transform) // TODO - make this a method on the triptych
+    let currTransformContent =  this.triptych.translateXPercent();
 
     let offset = nextIndex - currIndex;
     let isCurrentItemLast = currIndex === this.slides.length - 1;
@@ -127,7 +128,7 @@ class Slammer {
     if (nextIndex === -1) debugger; /* ?? What causes this case ?? I couldn't trigger it. (BB) */
 
     let newTransformPos;
-    if (time <= 0) {
+    if (time <= 0) { // What is this case for? It seems to have a special meaning
       newTransformPos = (1/3) * -100;
     }
     else if (offset > 0 || isCurrentItemLast && nextIndex === -1) {
@@ -138,6 +139,7 @@ class Slammer {
     }
 
     if (time > 0) {
+
       let transitionClassName = 'slammer-transitioning';
       let transitionProperty = 'transform ' + transitionTime/1000 + 's';
 
@@ -150,7 +152,7 @@ class Slammer {
       // TODO - call this function when the transition end event fires instead of using setTimeout
       // (although, transitionend event has spotty browser support...)
       window.setTimeout(() => {
-        
+
         this.triptych
           .removeClass(transitionClassName)
           .transition('transform 0s');
@@ -162,11 +164,11 @@ class Slammer {
       }.bind(this), transitionTime);
 
     } 
-    else if (time < 0){
+    else if (time < 0){ // ?? When is this case reached?
       this.curr = 0;
     }
 
-    this.triptych.transform("translateX(" + newTransformPos + "%)")
+    this.triptych.translateXPercent(newTransformPos)
     return this;
   }
 

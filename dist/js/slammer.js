@@ -2706,12 +2706,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     this.curr = newIndex;
 
                     // Update current, next, and prev slides
-                    this.triptych.currSlide.innerHTML = this.getSlideHTML(newIndex);
-                    this.triptych.nextSlide.innerHTML = this.getSlideHTML(nextIndex);
-                    this.triptych.prevSlide.innerHTML = this.getSlideHTML(prevIndex);
+                    this.triptych.current(this.getSlideHTML(newIndex)).next(this.getSlideHTML(nextIndex)).prev(this.getSlideHTML(prevIndex));
 
-                    // Apply proper transforms to slides
-                    this.transformTo(newIndex, 0, 0);
+                    // Apply transforms to slides
+                    this.transformTo(newIndex, 0, 0); // This should be on the triptych... but we've other things to do before that.
                     this.nav.update(this.curr);
 
                     return this;
@@ -2721,7 +2719,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 value: function transformTo(currIndex, nextIndex, time) {
                     var _this4 = this;
 
-                    var currTransformContent = getTransformPercentAsNumber(this.triptych.root.style.transform); // TODO - make this a method on the triptych
+                    var currTransformContent = this.triptych.translateXPercent();
 
                     var offset = nextIndex - currIndex;
                     var isCurrentItemLast = currIndex === this.slides.length - 1;
@@ -2732,6 +2730,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     var newTransformPos = undefined;
                     if (time <= 0) {
+                        // What is this case for? It seems to have a special meaning
                         newTransformPos = 1 / 3 * -100;
                     } else if (offset > 0 || isCurrentItemLast && nextIndex === -1) {
                         newTransformPos = currTransformContent + 1 / 3 * -100;
@@ -2741,6 +2740,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     if (time > 0) {
                         (function () {
+
                             var transitionClassName = 'slammer-transitioning';
                             var transitionProperty = 'transform ' + transitionTime / 1000 + 's';
 
@@ -2756,10 +2756,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                             }).bind(_this4), transitionTime);
                         })();
                     } else if (time < 0) {
+                        // ?? When is this case reached?
                         this.curr = 0;
                     }
 
-                    this.triptych.transform("translateX(" + newTransformPos + "%)");
+                    this.triptych.translateXPercent(newTransformPos);
                     return this;
                 }
             }, {
@@ -2860,6 +2861,27 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }
 
             _createClass(SlammerTriptych, [{
+                key: "current",
+                value: function current(html) {
+                    if (!arguments.length) return this.currSlide.innerHTML;
+                    this.currSlide.innerHTML = html;
+                    return this;
+                }
+            }, {
+                key: "next",
+                value: function next(html) {
+                    if (!arguments.length) return this.nextSlide.innerHTML;
+                    this.nextSlide.innerHTML = html;
+                    return this;
+                }
+            }, {
+                key: "prev",
+                value: function prev(html) {
+                    if (!arguments.length) return this.prevSlide.innerHTML;
+                    this.prevSlide.innerHTML = html;
+                    return this;
+                }
+            }, {
                 key: "setRoot",
                 value: function setRoot(className) {
                     this.root = newDiv();
@@ -2894,6 +2916,21 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     this.root.style.transition = value;
                     return this;
                 }
+
+                // NYU
+            }, {
+                key: "translateXPercent",
+                value: function translateXPercent(value) {
+                    // Extracts translation percentage
+                    if (!arguments.length) {
+                        return parseFloat(this.transform().split('(')[1].split('%')[0]);
+                    }
+                    return this.transform("translateX(" + value + "%)");
+
+                    /*
+                     */
+                    function getTransformPercentAsNumber(transform) {}
+                }
             }]);
 
             return SlammerTriptych;
@@ -2903,7 +2940,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     }, { "./utils": 6 }], 6: [function (require, module, exports) {
         module.exports = {
             extend: extend,
-            getTransformPercentAsNumber: getTransformPercentAsNumber,
             mergeClassList: mergeClassList,
             mergeStyles: mergeStyles,
             newDiv: newDiv,
@@ -2926,13 +2962,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             });
 
             return result;
-        }
-
-        /*
-         * Parses a transform string and extracts the percentage by which it has been translated.
-         */
-        function getTransformPercentAsNumber(transform) {
-            return parseFloat(transform.split('(')[1].split('%')[0]);
         }
 
         /*

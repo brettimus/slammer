@@ -31,6 +31,25 @@ class SlammerTriptych {
     });
   }
 
+
+  current(html) {
+    if (!arguments.length) return this.currSlide.innerHTML;
+    this.currSlide.innerHTML = html;
+    return this
+  }
+
+  next(html) {
+    if (!arguments.length) return this.nextSlide.innerHTML;
+    this.nextSlide.innerHTML = html;
+    return this
+  }
+
+  prev(html) {
+    if (!arguments.length) return this.prevSlide.innerHTML;
+    this.prevSlide.innerHTML = html;
+    return this
+  }
+
   setRoot(className) {
     this.root = newDiv()
     this.root.classList.add(className);
@@ -59,6 +78,22 @@ class SlammerTriptych {
     this.root.style.WebkitTransition = value;
     this.root.style.transition       = value;
     return this;
+  }
+
+  // NYU
+  translateXPercent(value) {
+    // Extracts translation percentage
+    if (!arguments.length) {
+        return parseFloat(this.transform().split('(')[1].split('%')[0]);        
+    }
+    return this.transform("translateX(" + value + "%)")
+
+    /*
+     */
+    function getTransformPercentAsNumber(transform) {
+    }
+
+
   }
 
 }

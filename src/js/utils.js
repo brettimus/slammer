@@ -1,6 +1,5 @@
 module.exports = {
     extend: extend,
-    getTransformPercentAsNumber: getTransformPercentAsNumber,
     mergeClassList: mergeClassList,
     mergeStyles: mergeStyles,
     newDiv: newDiv,
@@ -23,13 +22,6 @@ function extend() {
   });
 
   return result;
-}
-
-/*
- * Parses a transform string and extracts the percentage by which it has been translated.
- */
-function getTransformPercentAsNumber(transform) {
-  return parseFloat(transform.split('(')[1].split('%')[0]);
 }
 
 /*
