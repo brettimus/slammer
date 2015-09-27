@@ -25,3 +25,9 @@ Someday, these will be configurable defaults, but for now they're set in stone:
 ##Future plans
 - detecting load of injected slides and not using a timeout to perform nonadjacent slide transformations
 - load subset of Hammer instead of the entire thing
+
+
+## Boots's notes
+
+- Compass hangs on my machine. See: https://github.com/gruntjs/grunt-contrib-compass/issues/204
+- Build is super slow for me. Is there a browserify transform for babel, or a babel transform for browserify?
