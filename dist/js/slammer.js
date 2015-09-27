@@ -2480,17 +2480,20 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
         var SlammerNav = (function () {
             function SlammerNav(slammer, options) {
+                var _this = this;
+
                 _classCallCheck(this, SlammerNav);
 
                 var defaults = {
-                    slideItemClass: 'slam-nav-item'
+                    navItemClass: 'slam-nav-item',
+                    navItemActiveClass: 'slam-nav-active'
                 };
 
-                var modOptions = extend({}, defaults, options);
+                this.options = extend({}, defaults, options);
                 var slides = slammer.slides;
 
-                var navWrap = document.createElement('nav');
-                navWrap.classList.add('slam-nav-wrap');
+                var navElt = document.createElement('nav');
+                navElt.classList.add('slam-nav-wrap');
 
                 // Instead of binding click handler to each list item,
                 // we could capture events by bubbling to the main nav.
@@ -2500,18 +2503,19 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 slides.forEach(function (slide, i) {
                     var slideElt = document.createElement('div');
 
-                    slideElt.classList.add(modOptions.slideItemClass);
+                    _this.addItemClass(slideElt);
                     setSlideEltIndex(slideElt, i);
 
-                    navWrap.appendChild(slideElt);
+                    navElt.appendChild(slideElt);
 
                     slideElt.addEventListener('click', clickHandler);
                 });
 
-                this.navWrap = navWrap;
+                this.elt = navElt;
+                this.update(slammer.curr);
             }
 
-            // Helpers
+            /*** Helpers - these need a better home. ***/
 
             _createClass(SlammerNav, [{
                 key: "navEltHandler",
@@ -2527,6 +2531,53 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var offset = nextIndex - currentIndex;
 
                     this.relativeTransition(offset);
+                }
+            }, {
+                key: "update",
+                value: function update(currentIndex) {
+                    var _this2 = this;
+
+                    var navItems = this.getItems();
+
+                    [].forEach.call(navItems, function (item, index) {
+
+                        if (_this2.isActiveItem(item)) {
+                            _this2.deactivateItem(item);
+                        } else if (index === currentIndex) {
+                            _this2.activateItem(item);
+                        }
+                    });
+
+                    return this;
+                }
+            }, {
+                key: "getItems",
+                value: function getItems() {
+                    return this.elt.children;
+                }
+            }, {
+                key: "isActiveItem",
+                value: function isActiveItem(item) {
+                    var activeClass = this.options.navItemActiveClass;
+                    return item.classList.contains(activeClass);
+                }
+            }, {
+                key: "activateItem",
+                value: function activateItem(item) {
+                    var activeClass = this.options.navItemActiveClass;
+                    item.classList.add(activeClass);
+                }
+            }, {
+                key: "deactivateItem",
+                value: function deactivateItem(item) {
+                    var activeClass = this.options.navItemActiveClass;
+                    item.classList.remove(activeClass);
+                }
+            }, {
+                key: "addItemClass",
+                value: function addItemClass(item) {
+                    var baseClass = this.options.navItemClass;
+                    item.classList.add(baseClass);
                 }
             }]);
 
@@ -2569,25 +2620,23 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             function Slammer(wrapperElt, options) {
                 _classCallCheck(this, Slammer);
 
-                // NYU (BB)
                 var defaults = {
                     activeSlideClass: "slam-item-active",
                     transitionTime: 450
                 };
+
                 this.options = extend({}, defaults, options);
 
-                this.wrapper = wrapperElt; // The wrapper element
-                this.slides = []; //
+                this.wrapper = wrapperElt;
+                this.slides = [].slice.call(this.wrapper.children, 0);
 
-                for (var _i2 = 0; _i2 < this.wrapper.children.length; _i2++) {
-                    this.slides.push(this.wrapper.children[_i2]);
-                }
-
+                // Global lock. (?? Short circuits event handlers while a transition is occurring.)
                 this.locked = true;
 
                 this.curr = 0;
                 this.prev = this.slides.length - 1;
                 this.next = 1;
+
                 this.newSlammer = null;
                 this.position = null;
 
@@ -2595,7 +2644,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 this.currSlide = null;
                 this.nextSlide = null;
 
-                this.slamNav = null;
+                this.nav = null;
 
                 this.slam();
             }
@@ -2604,23 +2653,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 key: "createNav",
                 value: function createNav() {
                     var options = this.options;
-                    var nav = new SlammerNav(this, options);
-
-                    this.slamNav = nav.navWrap;
-                    this.wrapper.appendChild(this.slamNav);
-                    this.updateNav();
-                }
-            }, {
-                key: "updateNav",
-                value: function updateNav() {
-                    var navItems = this.slamNav.children;
-                    for (var _i3 = 0; _i3 < navItems.length; _i3++) {
-                        if (navItems[_i3].classList.contains('slam-nav-active')) {
-                            navItems[_i3].classList.remove('slam-nav-active');
-                        } else if (_i3 === this.curr) {
-                            navItems[_i3].classList.add('slam-nav-active');
-                        }
-                    }
+                    this.nav = new SlammerNav(this, options);
+                    this.wrapper.appendChild(this.nav.elt);
                 }
             }, {
                 key: "relativeTransition",
@@ -2636,7 +2670,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "specialAdvance",
                 value: function specialAdvance(newIndex) {
-                    var _this = this;
+                    var _this3 = this;
 
                     // 1. inject contents of newIndex into Next slide
                     var newContent = this.slides[newIndex].innerHTML;
@@ -2644,21 +2678,20 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     // 2. transformTo(nextIndex)
                     window.setTimeout(function () {
-                        _this.transformTo(_this.curr, newIndex, _this.options.transitionTime);
+                        _this3.transformTo(_this3.curr, newIndex, _this3.options.transitionTime);
                     }, 0);
                 }
             }, {
                 key: "specialRetreat",
                 value: function specialRetreat(newIndex) {
-                    var _this2 = this;
+                    var _this4 = this;
 
                     // 1. inject contents of newIndex into Prev slide
                     var newContent = this.slides[newIndex].innerHTML;
                     this.prevSlide.innerHTML = newContent;
-
                     // 2. transformTo(nextIndex)
                     window.setTimeout(function () {
-                        _this2.transformTo(_this2.curr, newIndex, _this2.options.transitionTime);
+                        _this4.transformTo(_this4.curr, newIndex, _this4.options.transitionTime);
                     }, 0);
                 }
             }, {
@@ -2693,12 +2726,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     this.curr = actualNewIndex;
 
                     this.transformTo(actualNewIndex, 0, 0);
-                    this.updateNav();
+                    this.nav.update(this.curr);
                 }
             }, {
                 key: "transformTo",
                 value: function transformTo(currIndex, nextIndex, time) {
-                    var _this3 = this;
+                    var _this5 = this;
 
                     var currTransformPos = this.newSlammer.style.transform;
                     var currTransformContent = parseFloat(currTransformPos.split('(')[1].split('%')[0]);
@@ -2721,11 +2754,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         this.newSlammer.style.transition = 'transform ' + transitionTime / 1000 + 's';
                         this.newSlammer.style.WebkitTransition = '-webkit-transform ' + transitionTime / 1000 + 's';
                         window.setTimeout(function () {
-                            _this3.newSlammer.classList.remove('slammer-transitioning');
-                            _this3.newSlammer.style.transition = 'transform ' + 0 + 's';
-                            _this3.newSlammer.style.WebkitTransition = '-webkit-transform ' + 0 + 's';
-                            _this3.injectNewSurroundingSlides(currIndex, nextIndex);
-                            _this3.locked = false;
+                            _this5.newSlammer.classList.remove('slammer-transitioning');
+                            _this5.newSlammer.style.transition = 'transform ' + 0 + 's';
+                            _this5.newSlammer.style.WebkitTransition = '-webkit-transform ' + 0 + 's';
+                            _this5.injectNewSurroundingSlides(currIndex, nextIndex);
+                            _this5.locked = false;
                         }, transitionTime);
                     } else if (time < 0) {
                         this.curr = 0;
@@ -2737,21 +2770,21 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "acceptHammers",
                 value: function acceptHammers() {
-                    var _this4 = this;
+                    var _this6 = this;
 
                     var hammer = new Hammer(this.newSlammer);
                     hammer.on('swipe', function (e) {
-                        if (!_this4.locked) {
+                        if (!_this6.locked) {
                             if (e.direction === 2) {
-                                _this4.advance();
+                                _this6.advance();
                             } else if (e.direction === 4) {
-                                _this4.retreat();
+                                _this6.retreat();
                             }
                         }
                     });
                     hammer.on('tap', function (e) {
-                        if (!_this4.locked) {
-                            _this4.advance();
+                        if (!_this6.locked) {
+                            _this6.advance();
                         }
                     });
                 }
@@ -2774,8 +2807,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var slides = [this.prevSlide, this.currSlide, this.nextSlide];
                     var origSlideCopies = [];
 
-                    for (var _i4 = 0; _i4 < this.slides.length; _i4++) {
-                        var curr = this.slides[_i4];
+                    for (var _i2 = 0; _i2 < this.slides.length; _i2++) {
+                        var curr = this.slides[_i2];
                         var newSlide = {
                             "content": curr.innerHTML,
                             "classes": curr.classList,
@@ -2784,16 +2817,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         origSlideCopies.push(newSlide);
                     }
 
-                    for (var _i5 = 0; _i5 < slides.length; _i5++) {
-                        this.newSlammer.appendChild(slides[_i5]);
-                        var slideIndexToUse = _i5 - 1 >= 0 ? _i5 - 1 : origSlideCopies.length - 1;
-                        slides[_i5].innerHTML = origSlideCopies[slideIndexToUse].content;
+                    for (var _i3 = 0; _i3 < slides.length; _i3++) {
+                        this.newSlammer.appendChild(slides[_i3]);
+                        var slideIndexToUse = _i3 - 1 >= 0 ? _i3 - 1 : origSlideCopies.length - 1;
+                        slides[_i3].innerHTML = origSlideCopies[slideIndexToUse].content;
                         for (var j = 0; j < origSlideCopies[slideIndexToUse].classes.length; j++) {
-                            slides[_i5].classList.add(origSlideCopies[slideIndexToUse].classes[j]);
+                            slides[_i3].classList.add(origSlideCopies[slideIndexToUse].classes[j]);
                         }
                         for (var prop in origSlideCopies[slideIndexToUse].style) {
                             if (origSlideCopies[slideIndexToUse].style[prop] && origSlideCopies[slideIndexToUse].style[prop].length > 0) {
-                                slides[_i5].style[prop] = origSlideCopies[slideIndexToUse].style[prop];
+                                slides[_i3].style[prop] = origSlideCopies[slideIndexToUse].style[prop];
                             }
                         }
                     }

@@ -6,8 +6,8 @@ class SlammerNav {
   constructor(slammer, options) {
 
     let defaults = {
-        slideItemClass: 'slam-nav-item',
-        slideItemActiveClass: 'slam-nav-active'
+        navItemClass: 'slam-nav-item',
+        navItemActiveClass: 'slam-nav-active'
     };
 
     this.options = extend({}, defaults, options);
@@ -24,7 +24,7 @@ class SlammerNav {
     slides.forEach((slide, i) => {
       let slideElt = document.createElement('div');
       
-      slideElt.classList.add(this.options.slideItemClass);
+      this.addItemClass(slideElt);
       setSlideEltIndex(slideElt, i)
 
       navElt.appendChild(slideElt);
@@ -32,8 +32,8 @@ class SlammerNav {
       slideElt.addEventListener('click', clickHandler)
     });
 
-
     this.elt = navElt;
+    this.update(slammer.curr);
   }
 
   navEltHandler(evt) {
@@ -56,22 +56,46 @@ class SlammerNav {
     let navItems = this.getItems();
     
     [].forEach.call(navItems, (item, index) => {
-      if (item.classList.contains('slam-nav-active')) {
-        item.classList.remove('slam-nav-active')
+
+      if (this.isActiveItem(item)) {
+        this.deactivateItem(item);
       }
       else if (index === currentIndex) {
-        item.classList.add('slam-nav-active');
+        this.activateItem(item);
       }
+
     });
+
+    return this;
   }
 
   getItems() {
     return this.elt.children;
   }
+
+  isActiveItem(item) {
+    let activeClass = this.options.navItemActiveClass;
+    return item.classList.contains(activeClass)
+  }
+
+  activateItem(item) {
+    let activeClass = this.options.navItemActiveClass;
+    item.classList.add(activeClass);
+  }
+
+  deactivateItem(item) {
+    let activeClass = this.options.navItemActiveClass;
+    item.classList.remove(activeClass);
+  }
+
+  addItemClass(item) {
+    let baseClass = this.options.navItemClass
+    item.classList.add(baseClass);
+  }
 }
 
 
-// Helpers
+/*** Helpers - these need a better home. ***/
 function setSlideEltIndex(slideElt, i) {
     if (!slideElt.dataset) {
         slideElt.dataset = {}; // This is potentially very :poop:

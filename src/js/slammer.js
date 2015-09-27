@@ -22,25 +22,23 @@ class Slammer {
 
   constructor(wrapperElt, options) {
 
-    // NYU (BB)
     let defaults = {
       activeSlideClass: "slam-item-active",
       transitionTime: 450,
-    }
+    };
+    
     this.options = extend({}, defaults, options);
 
-    this.wrapper = wrapperElt;  // The wrapper element
-    this.slides = [];           // 
+    this.wrapper = wrapperElt;
+    this.slides  = [].slice.call(this.wrapper.children, 0);
 
-    for (let i = 0; i < this.wrapper.children.length; i++) {
-      this.slides.push(this.wrapper.children[i]);
-    }
-
+    // Global lock. (?? Short circuits event handlers while a transition is occurring.)
     this.locked = true;
 
     this.curr = 0;
     this.prev = this.slides.length - 1;
     this.next = 1;
+    
     this.newSlammer = null;
     this.position = null;
 
@@ -55,11 +53,8 @@ class Slammer {
 
   createNav() {
     let options = this.options;
-    let nav     = new SlammerNav(this, options);
-
-    this.nav = nav;
+    this.nav = new SlammerNav(this, options);
     this.wrapper.appendChild(this.nav.elt);
-    this.nav.update(this.curr);
   }
 
   relativeTransition(offset) {
