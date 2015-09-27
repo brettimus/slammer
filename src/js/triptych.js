@@ -1,25 +1,29 @@
-// NYI
-// This should replace the "newSlammer" property in slammer
 const Hammer = require('hammerjs');
 
+const extend         = require("./utils").extend;
 const mergeClassList = require("./utils").mergeClassList;
 const mergeStyles    = require("./utils").mergeStyles;
 const newDiv         = require("./utils").newDiv;
 
 const translationConstant = (1/3) * 100;
 
+let defaults = require("./defaults").triptych;
+
 class SlammerTriptych {
   constructor(wrapper, baseSlides, options) {
 
-    this.transitionClassName = options.transitionClassName;
-    this.transitionTime = options.transitionTime;
+    this.options = extend({}, defaults, options);
+
+    this.triptychClassName   = this.options.triptychClassName;
+    this.transitionClassName = this.options.transitionClassName;
+    this.transitionTime      = this.options.transitionTime;
 
     this
       .setRoot() // TODO - configure className
-      .setHammer()
+      .setSlides()
+      .hammer(new Hammer(this.root))
       .transform("translateX(0%)")
-      .slides()
-      .forEach((slide, i) => {
+      .forEachSlide((slide, i) => {
 
         this.root.appendChild(slide);
 
@@ -36,17 +40,76 @@ class SlammerTriptych {
     this.center();
   }
 
-  slides() {
-    // I don't like what I did here.
-    // It's obfuscating what's going on.
-    this.prevSlide = this.prevSlide || newDiv();
-    this.currSlide = this.currSlide || newDiv();
-    this.nextSlide = this.nextSlide || newDiv();
-    return [this.prevSlide, this.currSlide, this.nextSlide];
+
+  addClass(className) {
+    this.root.classList.add(className)
+    return this;
   }
 
   center() {
     this.translateXPercent(-translationConstant)
+    return this;
+  }
+
+  current(html) {
+    if (!arguments.length) return this.currSlide.innerHTML;
+    this.currSlide.innerHTML = html;
+    return this
+  }
+
+  direction(offset) {
+    return offset > 0 ? -1 : 1;
+  }
+
+  forEachSlide(fun) {
+    let slides = [this.prevSlide, this.currSlide, this.nextSlide];
+    slides.forEach(fun, this)
+    return this;
+  }
+
+  hammer(value) {
+    if (!arguments.length) return this._hammer;
+    this._hammer = value;
+    return this;
+  }
+
+
+  injectHTML(html) {
+    this
+      .current(html.curr)
+      .next(html.next)
+      .prev(html.prev);
+
+    return this;
+  }
+
+  next(html) {
+    if (!arguments.length) return this.nextSlide.innerHTML;
+    this.nextSlide.innerHTML = html;
+    return this
+  }
+
+  prev(html) {
+    if (!arguments.length) return this.prevSlide.innerHTML;
+    this.prevSlide.innerHTML = html;
+    return this
+  }
+
+  removeClass(className) {
+    this.root.classList.remove(className)
+    return this;
+  }
+
+  setRoot() {
+    this.root = newDiv()
+    this.root.classList.add(this.triptychClassName);
+    return this;
+  }
+
+  setSlides() {
+    this.prevSlide = newDiv();
+    this.currSlide = newDiv();
+    this.nextSlide = newDiv();
     return this;
   }
 
@@ -63,7 +126,7 @@ class SlammerTriptych {
       .transition('transform ' + this.transitionTime/1000 + 's')
       .translateXPercent(translation);
 
-    let transitionEnd = () => {
+    let afterTransition = () => {
       this
         .removeClass(this.transitionClassName)
         .transition('transform 0s')
@@ -72,45 +135,7 @@ class SlammerTriptych {
       if (callback) callback();
     };
 
-    setTimeout(transitionEnd, this.transitionTime);
-    return this;
-  }
-
-  injectHTML(html) {
-    this
-      .current(html.curr)
-      .next(html.next)
-      .prev(html.prev);
-
-    return this;
-  }
-
-  current(html) {
-    if (!arguments.length) return this.currSlide.innerHTML;
-    this.currSlide.innerHTML = html;
-    return this
-  }
-
-  next(html) {
-    if (!arguments.length) return this.nextSlide.innerHTML;
-    this.nextSlide.innerHTML = html;
-    return this
-  }
-
-  prev(html) {
-    if (!arguments.length) return this.prevSlide.innerHTML;
-    this.prevSlide.innerHTML = html;
-    return this
-  }
-
-  setRoot() {
-    this.root = newDiv()
-    this.root.classList.add('slam-items');
-    return this;
-  }
-
-  setHammer() {
-    this.hammer = new Hammer(this.root);
+    setTimeout(afterTransition, this.transitionTime);
     return this;
   }
 
@@ -126,16 +151,6 @@ class SlammerTriptych {
 
   tap(callback) {
     this.hammer.on('tap', callback)
-    return this;
-  }
-
-  addClass(className) {
-    this.root.classList.add(className)
-    return this;
-  }
-
-  removeClass(className) {
-    this.root.classList.remove(className)
     return this;
   }
 
@@ -159,10 +174,6 @@ class SlammerTriptych {
     this.root.style.WebkitTransition = value;
     this.root.style.transition       = value;
     return this;
-  }
-
-  direction(offset) {
-    return offset > 0 ? -1 : 1;
   }
 }
 

@@ -3,23 +3,21 @@ const Hammer = require('hammerjs');
 const extend = require("./utils").extend;
 const newDiv = require("./utils").newDiv;
 
+let defaults = require("./defaults").nav;
+
 class SlammerNav {
 
   constructor(wrapper, slides, options) {
 
-    let defaults = {
-        navClass: 'slam-nav-wrap',
-        navItemClass: 'slam-nav-item',
-        navItemActiveClass: 'slam-nav-active'
-    };
     this.options = extend({}, defaults, options);
+
     this.navClass = this.options.navClass;
     this.navItemClass = this.options.navItemClass;
     this.navItemActiveClass = this.options.navItemActiveClass;
 
     this
       .setRoot()
-      .setHammer()
+      .hammer(new Hammer(this.root))
       .setItems(slides)
       .update(this.options.startingIndex); // sketchy but passable...
 
@@ -33,8 +31,9 @@ class SlammerNav {
     return this;
   }
 
-  setHammer() {
-    this.hammer = new Hammer(this.root);
+  hammer(value) {
+    if (!arguments.length) return this._hammer;
+    this._hammer = value;
     return this;
   }
 
@@ -46,14 +45,14 @@ class SlammerNav {
     return this;
   }
 
-  click(callback) {
-    let clickEventProxy = (evt) => {
+  tap(callback) {
+    let eventProxy = (evt) => {
       let navItem = evt.target || evt.srcElement;
       let index   = this.getNavItemIndex(navItem);
       if (callback) callback(index);
     };
 
-    this.hammer.on("tap", clickEventProxy.bind(this));
+    this.hammer().on("tap", eventProxy.bind(this));
 
     return this;
   }

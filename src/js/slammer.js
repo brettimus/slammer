@@ -1,13 +1,5 @@
 "use strict";
 
-/*** NOTES ***
- *
- * Slammer should have a Nav and a Triptych
- * 
- * For each transition, the Triptych is injected with information about the new slides.
- *
- */
-
 const SlammerNav      = require('./nav');
 const SlammerTriptych = require('./triptych');
 
@@ -15,28 +7,33 @@ const extend         = require('./utils').extend;
 const isNumeric      = require('./utils').isNumeric;
 const toArray        = require('./utils').toArray;
 
+let defaults = require('./defaults').slammer;
+
 class Slammer {
 
   constructor(wrapperElt, options) {
+    if (wrapperElt.children.length < 2) {
+      throw new Error("The wrapping element must have at least two children in order to SLAM!");
+    }
 
-    let defaults = {
-      startingIndex: 0,
-      transitionTime: 450,
-      transitionClassName: 'slammer-transitioning',
-    };
-    
-    this.options = extend({}, defaults, options);
-    this.slides  = toArray(wrapperElt.children);
-
-    if (this.slides.length < 2) return; // This used to be in the `slam` method. Could probably remove or modify.
+    this.options       = extend({}, defaults, options);
+    this.startingIndex = this.options.startingIndex;
+    this.slides        = toArray(wrapperElt.children);
 
     this
       .lock()        // The lock helps to short circuit event handlers if a transition is in progress.
-      .currentIndex(this.options.startingIndex)
+      .currentIndex(this.startingIndex)
       .wrapper(wrapperElt)
       .triptych(new SlammerTriptych(this.wrapper(), this.slides, this.options))
       .nav(new SlammerNav(this.wrapper(), this.slides, this.options))
       .unlock();
+  }
+
+  wrapper(elt) {
+    if (!arguments.length) return this._wrapper;
+    this._wrapper = elt.parentNode;
+    this._wrapper.removeChild(elt);
+    return this;
   }
 
   triptych(value) {
@@ -59,21 +56,15 @@ class Slammer {
     this.advance();
   }
 
-  wrapper(elt) {
-    if (!arguments.length) return this._wrapper;
-    this._wrapper = elt.parentNode;
-    this._wrapper.removeChild(elt);
-    return this;
-  }
-
+  /*** nav-related ***/
   nav(value) {
     if (!arguments.length) return this._nav;
-    value.click(this.navEltHandler.bind(this))
+    value.tap(this.navTapHandler.bind(this))
     this._nav = value;
     return this;
   }
 
-  navEltHandler(index) {
+  navTapHandler(index) {
     if (this.isLocked()) return;
     if (isNumeric(index)) {
       this.transformTo(index);
@@ -88,6 +79,8 @@ class Slammer {
     return this;
   }
 
+
+  /*** triptych (transition) related ***/
   relativeTransition(offset) {
     if (offset === 0) return;
     return this.transformTo(this.currentIndex() + offset);
@@ -127,29 +120,26 @@ class Slammer {
     return this;
   }
 
+  /*** helpers ***/
 
   currentIndex(value) {
-    return this.currIndex.apply(this, arguments);
-  }
-
-  currIndex(value) {
     if (!arguments.length) return this.curr;
     this.curr = this.indexify(value);
     return this;
   }
 
   // Makes sure that a given index is in the slide range
-  indexify(index) {
-    while (index < 0) index += this.slides.length;
-    return index % this.slides.length;
-  }
-
   getSlideHTML(index) {
     index = this.indexify(index);
     return this.slides[index].innerHTML;
   }
 
-  // The `lock` interface.
+  indexify(index) {
+    while (index < 0) index += this.slides.length;
+    return index % this.slides.length;
+  }
+
+  /*** lock-related ***/
   lock() {
     this.locked = true;
     return this;

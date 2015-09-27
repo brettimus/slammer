@@ -2466,6 +2466,30 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }
         })(window, document, 'Hammer');
     }, {}], 2: [function (require, module, exports) {
+        var extend = require('./utils').extend;
+
+        var nav = {
+            navClass: 'slam-nav-wrap',
+            navItemClass: 'slam-nav-item',
+            navItemActiveClass: 'slam-nav-active'
+        };
+
+        var triptych = {
+            transitionTime: 450,
+            transitionClassName: 'slammer-transitioning',
+            triptychClassName: 'slam-items'
+        };
+
+        var slammer = {
+            startingIndex: 0
+        };
+
+        module.exports = {
+            nav: nav,
+            slammer: slammer,
+            triptych: triptych
+        };
+    }, { "./utils": 7 }], 3: [function (require, module, exports) {
         var Slammer = require("./slammer");
 
         // Create Slammers out of all elts with this class.
@@ -2474,27 +2498,25 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         for (var _i = 0; _i < slammers.length; _i++) {
             var slammer = new Slammer(slammers[_i]);
         }
-    }, { "./slammer": 4 }], 3: [function (require, module, exports) {
+    }, { "./slammer": 5 }], 4: [function (require, module, exports) {
         var Hammer = require('hammerjs');
 
         var extend = require("./utils").extend;
         var newDiv = require("./utils").newDiv;
 
+        var defaults = require("./defaults").nav;
+
         var SlammerNav = (function () {
             function SlammerNav(wrapper, slides, options) {
                 _classCallCheck(this, SlammerNav);
 
-                var defaults = {
-                    navClass: 'slam-nav-wrap',
-                    navItemClass: 'slam-nav-item',
-                    navItemActiveClass: 'slam-nav-active'
-                };
                 this.options = extend({}, defaults, options);
+
                 this.navClass = this.options.navClass;
                 this.navItemClass = this.options.navItemClass;
                 this.navItemActiveClass = this.options.navItemActiveClass;
 
-                this.setRoot().setHammer().setItems(slides).update(this.options.startingIndex); // sketchy but passable...
+                this.setRoot().hammer(new Hammer(this.root)).setItems(slides).update(this.options.startingIndex); // sketchy but passable...
 
                 wrapper.appendChild(this.root);
             }
@@ -2508,9 +2530,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     return this;
                 }
             }, {
-                key: "setHammer",
-                value: function setHammer() {
-                    this.hammer = new Hammer(this.root);
+                key: "hammer",
+                value: function hammer(value) {
+                    if (!arguments.length) return this._hammer;
+                    this._hammer = value;
                     return this;
                 }
             }, {
@@ -2525,17 +2548,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     return this;
                 }
             }, {
-                key: "click",
-                value: function click(callback) {
+                key: "tap",
+                value: function tap(callback) {
                     var _this2 = this;
 
-                    var clickEventProxy = function clickEventProxy(evt) {
+                    var eventProxy = function eventProxy(evt) {
                         var navItem = evt.target || evt.srcElement;
                         var index = _this2.getNavItemIndex(navItem);
                         if (callback) callback(index);
                     };
 
-                    this.hammer.on("tap", clickEventProxy.bind(this));
+                    this.hammer().on("tap", eventProxy.bind(this));
 
                     return this;
                 }
@@ -2610,16 +2633,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         })();
 
         module.exports = SlammerNav;
-    }, { "./utils": 6, "hammerjs": 1 }], 4: [function (require, module, exports) {
+    }, { "./defaults": 2, "./utils": 7, "hammerjs": 1 }], 5: [function (require, module, exports) {
         "use strict";
-
-        /*** NOTES ***
-         *
-         * Slammer should have a Nav and a Triptych
-         * 
-         * For each transition, the Triptych is injected with information about the new slides.
-         *
-         */
 
         var SlammerNav = require('./nav');
         var SlammerTriptych = require('./triptych');
@@ -2628,26 +2643,33 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         var isNumeric = require('./utils').isNumeric;
         var toArray = require('./utils').toArray;
 
+        var defaults = require('./defaults').slammer;
+
         var Slammer = (function () {
             function Slammer(wrapperElt, options) {
                 _classCallCheck(this, Slammer);
 
-                var defaults = {
-                    startingIndex: 0,
-                    transitionTime: 450,
-                    transitionClassName: 'slammer-transitioning'
-                };
+                if (wrapperElt.children.length < 2) {
+                    throw new Error("The wrapping element must have at least two children in order to SLAM!");
+                }
 
                 this.options = extend({}, defaults, options);
+                this.startingIndex = this.options.startingIndex;
                 this.slides = toArray(wrapperElt.children);
 
-                if (this.slides.length < 2) return; // This used to be in the `slam` method. Could probably remove or modify.
-
                 this.lock() // The lock helps to short circuit event handlers if a transition is in progress.
-                .currentIndex(this.options.startingIndex).wrapper(wrapperElt).triptych(new SlammerTriptych(this.wrapper(), this.slides, this.options)).nav(new SlammerNav(this.wrapper(), this.slides, this.options)).unlock();
+                .currentIndex(this.startingIndex).wrapper(wrapperElt).triptych(new SlammerTriptych(this.wrapper(), this.slides, this.options)).nav(new SlammerNav(this.wrapper(), this.slides, this.options)).unlock();
             }
 
             _createClass(Slammer, [{
+                key: "wrapper",
+                value: function wrapper(elt) {
+                    if (!arguments.length) return this._wrapper;
+                    this._wrapper = elt.parentNode;
+                    this._wrapper.removeChild(elt);
+                    return this;
+                }
+            }, {
                 key: "triptych",
                 value: function triptych(value) {
                     if (!arguments.length) return this._triptych;
@@ -2668,25 +2690,19 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     if (this.isLocked()) return;
                     this.advance();
                 }
-            }, {
-                key: "wrapper",
-                value: function wrapper(elt) {
-                    if (!arguments.length) return this._wrapper;
-                    this._wrapper = elt.parentNode;
-                    this._wrapper.removeChild(elt);
-                    return this;
-                }
+
+                /*** nav-related ***/
             }, {
                 key: "nav",
                 value: function nav(value) {
                     if (!arguments.length) return this._nav;
-                    value.click(this.navEltHandler.bind(this));
+                    value.tap(this.navTapHandler.bind(this));
                     this._nav = value;
                     return this;
                 }
             }, {
-                key: "navEltHandler",
-                value: function navEltHandler(index) {
+                key: "navTapHandler",
+                value: function navTapHandler(index) {
                     if (this.isLocked()) return;
                     if (isNumeric(index)) {
                         this.transformTo(index);
@@ -2700,6 +2716,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     this.nav().update(this.currentIndex());
                     return this;
                 }
+
+                /*** triptych (transition) related ***/
             }, {
                 key: "relativeTransition",
                 value: function relativeTransition(offset) {
@@ -2739,14 +2757,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     return this;
                 }
+
+                /*** helpers ***/
+
             }, {
                 key: "currentIndex",
                 value: function currentIndex(value) {
-                    return this.currIndex.apply(this, arguments);
-                }
-            }, {
-                key: "currIndex",
-                value: function currIndex(value) {
                     if (!arguments.length) return this.curr;
                     this.curr = this.indexify(value);
                     return this;
@@ -2754,19 +2770,19 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                 // Makes sure that a given index is in the slide range
             }, {
-                key: "indexify",
-                value: function indexify(index) {
-                    while (index < 0) index += this.slides.length;
-                    return index % this.slides.length;
-                }
-            }, {
                 key: "getSlideHTML",
                 value: function getSlideHTML(index) {
                     index = this.indexify(index);
                     return this.slides[index].innerHTML;
                 }
+            }, {
+                key: "indexify",
+                value: function indexify(index) {
+                    while (index < 0) index += this.slides.length;
+                    return index % this.slides.length;
+                }
 
-                // The `lock` interface.
+                /*** lock-related ***/
             }, {
                 key: "lock",
                 value: function lock() {
@@ -2790,16 +2806,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         })();
 
         module.exports = Slammer;
-    }, { "./nav": 3, "./triptych": 5, "./utils": 6 }], 5: [function (require, module, exports) {
-        // NYI
-        // This should replace the "newSlammer" property in slammer
+    }, { "./defaults": 2, "./nav": 4, "./triptych": 6, "./utils": 7 }], 6: [function (require, module, exports) {
         var Hammer = require('hammerjs');
 
+        var extend = require("./utils").extend;
         var mergeClassList = require("./utils").mergeClassList;
         var mergeStyles = require("./utils").mergeStyles;
         var newDiv = require("./utils").newDiv;
 
         var translationConstant = 1 / 3 * 100;
+
+        var defaults = require("./defaults").triptych;
 
         var SlammerTriptych = (function () {
             function SlammerTriptych(wrapper, baseSlides, options) {
@@ -2807,11 +2824,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                 _classCallCheck(this, SlammerTriptych);
 
-                this.transitionClassName = options.transitionClassName;
-                this.transitionTime = options.transitionTime;
+                this.options = extend({}, defaults, options);
+
+                this.triptychClassName = this.options.triptychClassName;
+                this.transitionClassName = this.options.transitionClassName;
+                this.transitionTime = this.options.transitionTime;
 
                 this.setRoot() // TODO - configure className
-                .setHammer().transform("translateX(0%)").slides().forEach(function (slide, i) {
+                .setSlides().hammer(new Hammer(this.root)).transform("translateX(0%)").forEachSlide(function (slide, i) {
 
                     _this5.root.appendChild(slide);
 
@@ -2829,14 +2849,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }
 
             _createClass(SlammerTriptych, [{
-                key: "slides",
-                value: function slides() {
-                    // I don't like what I did here.
-                    // It's obfuscating what's going on.
-                    this.prevSlide = this.prevSlide || newDiv();
-                    this.currSlide = this.currSlide || newDiv();
-                    this.nextSlide = this.nextSlide || newDiv();
-                    return [this.prevSlide, this.currSlide, this.nextSlide];
+                key: "addClass",
+                value: function addClass(className) {
+                    this.root.classList.add(className);
+                    return this;
                 }
             }, {
                 key: "center",
@@ -2845,25 +2861,29 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     return this;
                 }
             }, {
-                key: "slide",
-                value: function slide(offset, html, callback) {
-                    var _this6 = this;
-
-                    if (offset === 0) return;
-                    if (offset < -1) this.prev(html.curr);
-                    if (offset > 1) this.next(html.curr);
-
-                    var direction = this.direction(offset);
-                    var translation = this.translateXPercent() + direction * translationConstant;
-
-                    this.addClass(this.transitionClassName).transition('transform ' + this.transitionTime / 1000 + 's').translateXPercent(translation);
-
-                    var transitionEnd = function transitionEnd() {
-                        _this6.removeClass(_this6.transitionClassName).transition('transform 0s').injectHTML(html).center();
-                        if (callback) callback();
-                    };
-
-                    setTimeout(transitionEnd, this.transitionTime);
+                key: "current",
+                value: function current(html) {
+                    if (!arguments.length) return this.currSlide.innerHTML;
+                    this.currSlide.innerHTML = html;
+                    return this;
+                }
+            }, {
+                key: "direction",
+                value: function direction(offset) {
+                    return offset > 0 ? -1 : 1;
+                }
+            }, {
+                key: "forEachSlide",
+                value: function forEachSlide(fun) {
+                    var slides = [this.prevSlide, this.currSlide, this.nextSlide];
+                    slides.forEach(fun, this);
+                    return this;
+                }
+            }, {
+                key: "hammer",
+                value: function hammer(value) {
+                    if (!arguments.length) return this._hammer;
+                    this._hammer = value;
                     return this;
                 }
             }, {
@@ -2871,13 +2891,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 value: function injectHTML(html) {
                     this.current(html.curr).next(html.next).prev(html.prev);
 
-                    return this;
-                }
-            }, {
-                key: "current",
-                value: function current(html) {
-                    if (!arguments.length) return this.currSlide.innerHTML;
-                    this.currSlide.innerHTML = html;
                     return this;
                 }
             }, {
@@ -2895,16 +2908,48 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     return this;
                 }
             }, {
-                key: "setRoot",
-                value: function setRoot() {
-                    this.root = newDiv();
-                    this.root.classList.add('slam-items');
+                key: "removeClass",
+                value: function removeClass(className) {
+                    this.root.classList.remove(className);
                     return this;
                 }
             }, {
-                key: "setHammer",
-                value: function setHammer() {
-                    this.hammer = new Hammer(this.root);
+                key: "setRoot",
+                value: function setRoot() {
+                    this.root = newDiv();
+                    this.root.classList.add(this.triptychClassName);
+                    return this;
+                }
+            }, {
+                key: "setSlides",
+                value: function setSlides() {
+                    // I don't like what I did here.
+                    // It's obfuscating what's going on.
+                    this.prevSlide = newDiv();
+                    this.currSlide = newDiv();
+                    this.nextSlide = newDiv();
+                    return this;
+                }
+            }, {
+                key: "slide",
+                value: function slide(offset, html, callback) {
+                    var _this6 = this;
+
+                    if (offset === 0) return;
+                    if (offset < -1) this.prev(html.curr);
+                    if (offset > 1) this.next(html.curr);
+
+                    var direction = this.direction(offset);
+                    var translation = this.translateXPercent() + direction * translationConstant;
+
+                    this.addClass(this.transitionClassName).transition('transform ' + this.transitionTime / 1000 + 's').translateXPercent(translation);
+
+                    var afterTransition = function afterTransition() {
+                        _this6.removeClass(_this6.transitionClassName).transition('transform 0s').injectHTML(html).center();
+                        if (callback) callback();
+                    };
+
+                    setTimeout(afterTransition, this.transitionTime);
                     return this;
                 }
             }, {
@@ -2920,18 +2965,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 key: "tap",
                 value: function tap(callback) {
                     this.hammer.on('tap', callback);
-                    return this;
-                }
-            }, {
-                key: "addClass",
-                value: function addClass(className) {
-                    this.root.classList.add(className);
-                    return this;
-                }
-            }, {
-                key: "removeClass",
-                value: function removeClass(className) {
-                    this.root.classList.remove(className);
                     return this;
                 }
             }, {
@@ -2959,18 +2992,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     this.root.style.transition = value;
                     return this;
                 }
-            }, {
-                key: "direction",
-                value: function direction(offset) {
-                    return offset > 0 ? -1 : 1;
-                }
             }]);
 
             return SlammerTriptych;
         })();
 
         module.exports = SlammerTriptych;
-    }, { "./utils": 6, "hammerjs": 1 }], 6: [function (require, module, exports) {
+    }, { "./defaults": 2, "./utils": 7, "hammerjs": 1 }], 7: [function (require, module, exports) {
         module.exports = {
             extend: extend,
             isNumeric: isNumeric,
@@ -3033,5 +3061,5 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         function toArray(elt) {
             return [].slice.call(elt, 0);
         }
-    }, {}] }, {}, [2]);
+    }, {}] }, {}, [3]);
 //# sourceMappingURL=slammer.js.map
