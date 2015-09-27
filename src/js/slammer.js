@@ -17,6 +17,7 @@ class Slammer {
     }
 
     this.options       = extend({}, defaults, options);
+    this.hasNav        = this.options.nav;
     this.startingIndex = this.options.startingIndex;
 
     this.slides        = toArray(wrapperElt.children); // TODO - abstract the idea of a `slide`
@@ -26,8 +27,11 @@ class Slammer {
       .currentIndex(this.startingIndex)
       .wrapper(wrapperElt)
       .triptych(new SlammerTriptych(this.wrapper(), this.slides, this.options))
-      .nav(new SlammerNav(this.wrapper(), this.slides, this.options))
       .unlock();
+
+    if (this.hasNav) {
+      this.nav(new SlammerNav(this.wrapper(), this.slides, this.options))      
+    }
   }
 
   wrapper(elt) {
@@ -77,6 +81,7 @@ class Slammer {
   }
 
   updateNav() {
+    if (!this.hasNav) return this;
     this.nav().update(this.currentIndex());
     return this;
   }

@@ -7,10 +7,10 @@
   <body>
     <main>
       <h1>Come on and slam!</h1>
-      <p>Here's a sample slider using Slammer.</p>
+      <p>Here's the default Slammer slidder.</p>
 
       <div class="slam-wrap">
-        <ul class="slam-items">
+        <ul class="slam-items js-slam-items-fast">
           <li class="slide"><img src="img/00.jpg"></li>
           <li class="slide"><img src="img/01.jpg"></li>
           <li class="slide"><img src="img/02.jpg"></li>
@@ -18,9 +18,10 @@
           <li class="slide"><img src="img/04.jpg"></li>
         </ul>
       </div>
-
+      <hr>
+      <p> But what about if you wanna Jam... IN SLOW MOTION AND WITHOUT A NAV?! </p>
       <div class="slam-wrap">
-        <ul class="slam-items">
+        <ul class="slam-items js-slam-items-slow">
           <li class="slide"><img src="img/00.jpg"></li>
           <li class="slide"><img src="img/01.jpg"></li>
           <li class="slide"><img src="img/02.jpg"></li>
@@ -31,5 +32,10 @@
 
     </main>
     <script type="text/javascript" src="dist/js/slammer.js"></script>
+    <script>
+      var fastSlammer = new Slammer(document.querySelector('.js-slam-items-fast'));
+      var slowOptions = { transitionTime: 4000, nav: false };
+      var slowSlammer = new Slammer(document.querySelector('.js-slam-items-slow'), slowOptions);
+    </script>
   </body>
 </html>

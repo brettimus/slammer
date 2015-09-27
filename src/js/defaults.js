@@ -13,6 +13,7 @@ let triptych = {
 };
 
 let slammer = {
+  nav: true,
   startingIndex: 0,
 };
 

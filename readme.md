@@ -44,7 +44,7 @@ Someday, these will be configurable defaults, but for now they're set in stone:
 
 - Slideshow expands to fill 100% of its container's width
 - One slide is visible at once
-- There is a nav
+- ~There is a nav~
 
 ## Future plans
 - ~detecting load of injected slides and not using a timeout to perform nonadjacent slide transformations~

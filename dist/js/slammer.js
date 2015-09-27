@@ -2481,6 +2481,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         };
 
         var slammer = {
+            nav: true,
             startingIndex: 0
         };
 
@@ -2490,14 +2491,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             triptych: triptych
         };
     }, { "./utils": 7 }], 3: [function (require, module, exports) {
-        var Slammer = require("./slammer");
-
-        // Create Slammers out of all elts with this class.
-        var slammers = document.getElementsByClassName('slam-items');
-
-        for (var _i = 0; _i < slammers.length; _i++) {
-            var slammer = new Slammer(slammers[_i]);
+        if (typeof window !== "undefined") {
+            window.Slammer = require("./slammer");
         }
+
+        module.exports = require("./slammer");
     }, { "./slammer": 5 }], 4: [function (require, module, exports) {
         var Hammer = require('hammerjs');
 
@@ -2648,12 +2646,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 }
 
                 this.options = extend({}, defaults, options);
+                this.hasNav = this.options.nav;
                 this.startingIndex = this.options.startingIndex;
 
                 this.slides = toArray(wrapperElt.children); // TODO - abstract the idea of a `slide`
 
                 this.lock() // See note on lock method
-                .currentIndex(this.startingIndex).wrapper(wrapperElt).triptych(new SlammerTriptych(this.wrapper(), this.slides, this.options)).nav(new SlammerNav(this.wrapper(), this.slides, this.options)).unlock();
+                .currentIndex(this.startingIndex).wrapper(wrapperElt).triptych(new SlammerTriptych(this.wrapper(), this.slides, this.options)).unlock();
+
+                if (this.hasNav) {
+                    this.nav(new SlammerNav(this.wrapper(), this.slides, this.options));
+                }
             }
 
             _createClass(Slammer, [{
@@ -2710,6 +2713,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "updateNav",
                 value: function updateNav() {
+                    if (!this.hasNav) return this;
                     this.nav().update(this.currentIndex());
                     return this;
                 }
