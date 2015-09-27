@@ -16,10 +16,7 @@ const SlammerNav      = require("./nav");
 const SlammerTriptych = require("./triptych");
 
 const extend         = require('./utils').extend;
-const getTransformPercentAsNumber = require("./utils").getTransformPercentAsNumber;
 const toArray        = require("./utils").toArray;
-
-const transitionTime = 450;
 
 class Slammer {
 
@@ -32,37 +29,38 @@ class Slammer {
     this.options = extend({}, defaults, options);
     this.slides  = toArray(wrapperElt.children);
 
-    // Set the global lock 
-    // * The lock helps to short circuit event handlers if a transition is in progress.
-    this.lock();
-
-    this.curr = 0;
-    this.prev = this.indexify(-1);
-    this.next = 1;
-
-    this.nav = null; // Populated by `createNav`
-
-    if (this.slides.length < 2) return; // This used to be in the `slam` method
-
-    this.triptych = new SlammerTriptych(this.slides);
-
-    this.wrapper = wrapperElt.parentNode;
-    this.wrapper.removeChild(wrapperElt);
-    this.wrapper.appendChild(this.triptych.root);
-
+    if (this.slides.length < 2) return; // This used to be in the `slam` method. Could probably remove or modify.
 
     this
-      .transformTo(-1, 0, -1)
-      .acceptHammers()
-      .createNav()
+      .lock()        // * The lock helps to short circuit event handlers if a transition is in progress.
+      .currIndex(0)
+      .prevIndex(-1)
+      .nextIndex(1)
+      .setTriptych(new SlammerTriptych(this.slides, this.options))
+      .setWrapper(wrapperElt)
+      .transformTo(-1, 0, -1) // The third argument is time. It being negative signifies something. 
+      .acceptHammers(new Hammer(this.triptych.root))
+      .createNav(new SlammerNav(this, this.options))
       .unlock();
 
   }
 
-  createNav() {
-    let options = this.options;
-    this.nav = new SlammerNav(this, options);
-    this.wrapper.appendChild(this.nav.elt);
+  setTriptych(value) {
+    this.triptych = value;
+    return this;
+  }
+
+  // TODO - get rid of setWrapper and createNav
+  // (notice how they are the only ones that use `this.wrapper`)
+  setWrapper(elt) {
+    this.wrapper = elt.parentNode;
+    this.wrapper.removeChild(elt);
+    this.wrapper.appendChild(this.triptych.root);
+    return this;
+  }
+
+  createNav(value) {
+    this.nav = value;
     return this;
   }
 
@@ -70,7 +68,7 @@ class Slammer {
     if (offset === 0) return;
 
     let nextIndex = this.curr + offset;
-    this.specialTransition(nextIndex);
+    return this.specialTransition(nextIndex);
   }
 
   specialTransition(newIndex) {
@@ -176,17 +174,14 @@ class Slammer {
     return this;
   }
 
-  acceptHammers() {
-    let hammer = new Hammer(this.triptych.root);
-
+  acceptHammers(hammer) {
     hammer.on('swipe', (e) => {
-      if (this.isLocked()) return;
-      if (e.direction === 2) {
+      if (this.isLocked())
+        return;
+      if (e.direction === 2)
         this.advance();
-      }
-      if (e.direction === 4) {
+      if (e.direction === 4)
         this.retreat();
-      }
     });
 
     hammer.on('tap', (e) => {
@@ -198,8 +193,24 @@ class Slammer {
   }
 
   currentIndex(value) {
+    return this.currIndex.apply(this, arguments);
+  }
+
+  currIndex(value) {
     if (!arguments.length) return this.curr;
     this.curr = this.indexify(value);
+    return this;
+  }
+
+  prevIndex(value) {
+    if (!arguments.length) return this.prev;
+    this.prev = this.indexify(value);
+    return this;
+  }
+
+  nextIndex(value) {
+    if (!arguments.length) return this.next;
+    this.next = this.indexify(value);
     return this;
   }
 

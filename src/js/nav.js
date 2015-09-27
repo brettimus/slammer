@@ -34,6 +34,7 @@ class SlammerNav {
 
     this.elt = navElt;
     this.update(slammer.curr);
+    slammer.wrapper.appendChild(this.elt);
   }
 
   navEltHandler(evt) {

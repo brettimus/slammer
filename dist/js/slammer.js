@@ -2513,6 +2513,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                 this.elt = navElt;
                 this.update(slammer.curr);
+                slammer.wrapper.appendChild(this.elt);
             }
 
             /*** Helpers - these need a better home. ***/
@@ -2618,10 +2619,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         var SlammerTriptych = require("./triptych");
 
         var extend = require('./utils').extend;
-        var getTransformPercentAsNumber = require("./utils").getTransformPercentAsNumber;
         var toArray = require("./utils").toArray;
-
-        var transitionTime = 450;
 
         var Slammer = (function () {
             function Slammer(wrapperElt, options) {
@@ -2634,33 +2632,34 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 this.options = extend({}, defaults, options);
                 this.slides = toArray(wrapperElt.children);
 
-                // Set the global lock
-                // * The lock helps to short circuit event handlers if a transition is in progress.
-                this.lock();
+                if (this.slides.length < 2) return; // This used to be in the `slam` method. Could probably remove or modify.
 
-                this.curr = 0;
-                this.prev = this.indexify(-1);
-                this.next = 1;
-
-                this.nav = null; // Populated by `createNav`
-
-                if (this.slides.length < 2) return; // This used to be in the `slam` method
-
-                this.triptych = new SlammerTriptych(this.slides);
-
-                this.wrapper = wrapperElt.parentNode;
-                this.wrapper.removeChild(wrapperElt);
-                this.wrapper.appendChild(this.triptych.root);
-
-                this.transformTo(-1, 0, -1).acceptHammers().createNav().unlock();
+                this.lock() // * The lock helps to short circuit event handlers if a transition is in progress.
+                .currIndex(0).prevIndex(-1).nextIndex(1).setTriptych(new SlammerTriptych(this.slides, this.options)).setWrapper(wrapperElt).transformTo(-1, 0, -1) // The third argument is time. It being negative signifies something.
+                .acceptHammers(new Hammer(this.triptych.root)).createNav(new SlammerNav(this, this.options)).unlock();
             }
 
             _createClass(Slammer, [{
+                key: "setTriptych",
+                value: function setTriptych(value) {
+                    this.triptych = value;
+                    return this;
+                }
+
+                // TODO - get rid of setWrapper and createNav
+                // (notice how they are the only ones that use `this.wrapper`)
+            }, {
+                key: "setWrapper",
+                value: function setWrapper(elt) {
+                    this.wrapper = elt.parentNode;
+                    this.wrapper.removeChild(elt);
+                    this.wrapper.appendChild(this.triptych.root);
+                    return this;
+                }
+            }, {
                 key: "createNav",
-                value: function createNav() {
-                    var options = this.options;
-                    this.nav = new SlammerNav(this, options);
-                    this.wrapper.appendChild(this.nav.elt);
+                value: function createNav(value) {
+                    this.nav = value;
                     return this;
                 }
             }, {
@@ -2669,7 +2668,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     if (offset === 0) return;
 
                     var nextIndex = this.curr + offset;
-                    this.specialTransition(nextIndex);
+                    return this.specialTransition(nextIndex);
                 }
             }, {
                 key: "specialTransition",
@@ -2768,19 +2767,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 }
             }, {
                 key: "acceptHammers",
-                value: function acceptHammers() {
+                value: function acceptHammers(hammer) {
                     var _this5 = this;
-
-                    var hammer = new Hammer(this.triptych.root);
 
                     hammer.on('swipe', function (e) {
                         if (_this5.isLocked()) return;
-                        if (e.direction === 2) {
-                            _this5.advance();
-                        }
-                        if (e.direction === 4) {
-                            _this5.retreat();
-                        }
+                        if (e.direction === 2) _this5.advance();
+                        if (e.direction === 4) _this5.retreat();
                     });
 
                     hammer.on('tap', function (e) {
@@ -2793,8 +2786,27 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }, {
                 key: "currentIndex",
                 value: function currentIndex(value) {
+                    return this.currIndex.apply(this, arguments);
+                }
+            }, {
+                key: "currIndex",
+                value: function currIndex(value) {
                     if (!arguments.length) return this.curr;
                     this.curr = this.indexify(value);
+                    return this;
+                }
+            }, {
+                key: "prevIndex",
+                value: function prevIndex(value) {
+                    if (!arguments.length) return this.prev;
+                    this.prev = this.indexify(value);
+                    return this;
+                }
+            }, {
+                key: "nextIndex",
+                value: function nextIndex(value) {
+                    if (!arguments.length) return this.next;
+                    this.next = this.indexify(value);
                     return this;
                 }
 
@@ -2927,8 +2939,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     this.root.style.transition = value;
                     return this;
                 }
-
-                // NYU
             }, {
                 key: "translateXPercent",
                 value: function translateXPercent(value) {
@@ -2937,10 +2947,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         return parseFloat(this.transform().split('(')[1].split('%')[0]);
                     }
                     return this.transform("translateX(" + value + "%)");
-
-                    /*
-                     */
-                    function getTransformPercentAsNumber(transform) {}
                 }
             }]);
 

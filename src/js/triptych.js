@@ -31,7 +31,6 @@ class SlammerTriptych {
     });
   }
 
-
   current(html) {
     if (!arguments.length) return this.currSlide.innerHTML;
     this.currSlide.innerHTML = html;
@@ -80,7 +79,6 @@ class SlammerTriptych {
     return this;
   }
 
-  // NYU
   translateXPercent(value) {
     // Extracts translation percentage
     if (!arguments.length) {
@@ -88,14 +86,7 @@ class SlammerTriptych {
     }
     return this.transform("translateX(" + value + "%)")
 
-    /*
-     */
-    function getTransformPercentAsNumber(transform) {
-    }
-
-
   }
-
 }
 
 module.exports = SlammerTriptych;
