@@ -15,29 +15,29 @@ class SlammerTriptych {
 
     this
       .setRoot('slam-items')
-      .transform("translateX(0%)");
+      .transform("translateX(0%)")
+      .slides()
+      .forEach((slide, i) => {
 
-    this.prevSlide = newDiv();
-    this.currSlide = newDiv();
-    this.nextSlide = newDiv();
+        this.root.appendChild(slide);
 
-    this.slides().forEach((slide, i) => {
+        // ?? TODO - cleanup ?? 
+        let origSlideIndex = i - 1 >= 0 ? i - 1 : baseSlides.length - 1;
+        let origSlide      = baseSlides[origSlideIndex];
 
-      this.root.appendChild(slide);
-
-      let origSlideIndex = i - 1 >= 0 ? i - 1 : baseSlides.length - 1; // why?
-      let origSlide = baseSlides[origSlideIndex];
-
-      slide.innerHTML = origSlide.innerHTML;
-      mergeClassList(slide, origSlide);
-      mergeStyles(slide, origSlide);
-    });
+        slide.innerHTML = origSlide.innerHTML;
+        mergeClassList(slide, origSlide);
+        mergeStyles(slide, origSlide);
+      });
 
     wrapper.appendChild(this.root);
     this.center();
   }
 
   slides() {
+    this.prevSlide = this.prevSlide || newDiv();
+    this.currSlide = this.currSlide || newDiv();
+    this.nextSlide = this.nextSlide || newDiv();
     return [this.prevSlide, this.currSlide, this.nextSlide];
   }
 
@@ -50,7 +50,7 @@ class SlammerTriptych {
     if (offset === 0) return;
     if (offset < -1) this.prev(html.curr);
     if (offset > 1)  this.next(html.curr);
-    
+
     let direction = this.direction(offset);
     let translation = this.translateXPercent() + direction * translationConstant;
 

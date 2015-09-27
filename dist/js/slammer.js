@@ -2493,6 +2493,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                 var navElt = document.createElement('nav');
                 navElt.classList.add(this.options.navClass);
+                this.root = navElt;
 
                 // Instead of binding click handler to each list item,
                 // we could capture events by bubbling to the main nav.
@@ -2501,23 +2502,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                 var slides = slammer.slides;
                 slides.forEach(function (slide, i) {
-                    var slideElt = document.createElement('div');
 
-                    _this.addItemClass(slideElt);
-                    setSlideEltIndex(slideElt, i);
+                    var navItem = document.createElement('div');
+                    navItem.addEventListener('click', clickHandler);
 
-                    navElt.appendChild(slideElt);
-
-                    slideElt.addEventListener('click', clickHandler);
+                    _this.setNavItemIndex(navItem, i).addItem(navItem);
                 });
 
-                this.elt = navElt;
-
                 this.update(slammer.currentIndex());
-                slammer.wrapper.appendChild(this.elt);
+                slammer.wrapper.appendChild(this.root);
             }
-
-            /*** Helpers - these need a better home. ***/
 
             _createClass(SlammerNav, [{
                 key: "navEltHandler",
@@ -2530,10 +2524,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     // ... Not ideal, but it works for now!
 
                     if (this.isLocked()) return;
-                    var slideElt = evt.target || evt.srcElement;
-                    var currentIndex = this.curr;
-                    var nextIndex = getSlideEltIndex(slideElt);
-                    var offset = nextIndex - currentIndex;
+                    var navItem = evt.target || evt.srcElement;
+                    var nextIndex = this.nav.getNavItemIndex(navItem);
+                    var offset = nextIndex - this.currentIndex();
 
                     this.updateNav().relativeTransition(offset);
                 }
@@ -2556,9 +2549,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     return this;
                 }
             }, {
+                key: "addItem",
+                value: function addItem(navItem) {
+                    navItem.classList.add(this.options.navItemClass);
+                    this.root.appendChild(navItem);
+                    return this;
+                }
+            }, {
                 key: "getItems",
                 value: function getItems() {
-                    return this.elt.children;
+                    return this.root.children;
                 }
             }, {
                 key: "isActiveItem",
@@ -2579,25 +2579,23 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     item.classList.remove(activeClass);
                 }
             }, {
-                key: "addItemClass",
-                value: function addItemClass(item) {
-                    var baseClass = this.options.navItemClass;
-                    item.classList.add(baseClass);
+                key: "setNavItemIndex",
+                value: function setNavItemIndex(elt, i) {
+                    if (!elt.dataset) {
+                        elt.dataset = {}; // WARNING This is potentially very :poop:
+                    }
+                    elt.dataset.slammerIndex = i;
+                    return this;
+                }
+            }, {
+                key: "getNavItemIndex",
+                value: function getNavItemIndex(elt) {
+                    return +elt.dataset.slammerIndex; // the `+` is to coerce the index an integer. otherwise, it's returned as a string
                 }
             }]);
 
             return SlammerNav;
         })();
-
-        function setSlideEltIndex(slideElt, i) {
-            if (!slideElt.dataset) {
-                slideElt.dataset = {}; // This is potentially very :poop:
-            }
-            slideElt.dataset.slammerIndex = i;
-        }
-        function getSlideEltIndex(slideElt) {
-            return +slideElt.dataset.slammerIndex; // the `+` is to coerce the index an integer. otherwise, it's returned as a string
-        }
 
         module.exports = SlammerNav;
     }, { "./utils": 6 }], 4: [function (require, module, exports) {
@@ -2637,7 +2635,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 if (this.slides.length < 2) return; // This used to be in the `slam` method. Could probably remove or modify.
 
                 this.lock() // * The lock helps to short circuit event handlers if a transition is in progress.
-                .currentIndex(this.options.startingIndex).setWrapper(wrapperElt).triptych(new SlammerTriptych(this.wrapper, this.slides, this.options)).createNav(new SlammerNav(this, this.options)).acceptHammers(new Hammer(this.triptych().root)).unlock();
+                .currentIndex(this.options.startingIndex).setWrapper(wrapperElt).triptych(new SlammerTriptych(this.wrapper, this.slides, this.options)).createNav(new SlammerNav(this, this.options)).addNavEvents() // NYI
+                .addHammerEvents(new Hammer(this.triptych().root)).unlock();
             }
 
             _createClass(Slammer, [{
@@ -2708,8 +2707,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     return this;
                 }
             }, {
-                key: "acceptHammers",
-                value: function acceptHammers(hammer) {
+                key: "addNavEvents",
+                value: function addNavEvents() {
+                    // NYI
+                    return this;
+                }
+            }, {
+                key: "addHammerEvents",
+                value: function addHammerEvents(hammer) {
                     var _this4 = this;
 
                     hammer.on('swipe', function (e) {
@@ -2795,17 +2800,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 this.transitionClassName = options.transitionClassName;
                 this.transitionTime = options.transitionTime;
 
-                this.setRoot('slam-items').transform("translateX(0%)");
-
-                this.prevSlide = newDiv();
-                this.currSlide = newDiv();
-                this.nextSlide = newDiv();
-
-                this.slides().forEach(function (slide, i) {
+                this.setRoot('slam-items').transform("translateX(0%)").slides().forEach(function (slide, i) {
 
                     _this5.root.appendChild(slide);
 
-                    var origSlideIndex = i - 1 >= 0 ? i - 1 : baseSlides.length - 1; // why?
+                    // ?? TODO - cleanup ??
+                    var origSlideIndex = i - 1 >= 0 ? i - 1 : baseSlides.length - 1;
                     var origSlide = baseSlides[origSlideIndex];
 
                     slide.innerHTML = origSlide.innerHTML;
@@ -2820,6 +2820,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             _createClass(SlammerTriptych, [{
                 key: "slides",
                 value: function slides() {
+                    this.prevSlide = this.prevSlide || newDiv();
+                    this.currSlide = this.currSlide || newDiv();
+                    this.nextSlide = this.nextSlide || newDiv();
                     return [this.prevSlide, this.currSlide, this.nextSlide];
                 }
             }, {

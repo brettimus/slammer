@@ -39,7 +39,8 @@ class Slammer {
       .setWrapper(wrapperElt)
       .triptych(new SlammerTriptych(this.wrapper, this.slides, this.options))
       .createNav(new SlammerNav(this, this.options))
-      .acceptHammers(new Hammer(this.triptych().root))
+      .addNavEvents() // NYI
+      .addHammerEvents(new Hammer(this.triptych().root))
       .unlock();
 
   }
@@ -107,7 +108,12 @@ class Slammer {
     return this;
   }
 
-  acceptHammers(hammer) {
+  addNavEvents() {
+    // NYI
+    return this;
+  }
+
+  addHammerEvents(hammer) {
     hammer.on('swipe', (e) => {
       if (this.isLocked())
         return;

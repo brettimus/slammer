@@ -14,6 +14,7 @@ class SlammerNav {
 
     let navElt = document.createElement('nav');
     navElt.classList.add(this.options.navClass);
+    this.root = navElt;
 
     // Instead of binding click handler to each list item, 
     // we could capture events by bubbling to the main nav.
@@ -22,20 +23,17 @@ class SlammerNav {
 
     let slides = slammer.slides;
     slides.forEach((slide, i) => {
-      let slideElt = document.createElement('div');
+
+      let navItem = document.createElement('div');
+      navItem.addEventListener('click', clickHandler)
       
-      this.addItemClass(slideElt);
-      setSlideEltIndex(slideElt, i)
-
-      navElt.appendChild(slideElt);
-
-      slideElt.addEventListener('click', clickHandler)
+      this
+        .setNavItemIndex(navItem, i)
+        .addItem(navItem);
     });
 
-    this.elt = navElt;
-
     this.update(slammer.currentIndex());
-    slammer.wrapper.appendChild(this.elt);
+    slammer.wrapper.appendChild(this.root);
   }
 
   navEltHandler(evt) {
@@ -47,10 +45,9 @@ class SlammerNav {
     // ... Not ideal, but it works for now!
 
     if (this.isLocked()) return;  
-    let slideElt       = evt.target || evt.srcElement;
-    let currentIndex   = this.curr;
-    let nextIndex      = getSlideEltIndex(slideElt);
-    let offset         = nextIndex - currentIndex;
+    let navItem      = evt.target || evt.srcElement;
+    let nextIndex    = this.nav.getNavItemIndex(navItem);
+    let offset       = nextIndex - this.currentIndex();
 
     this
       .updateNav()
@@ -76,8 +73,14 @@ class SlammerNav {
     return this;
   }
 
+  addItem(navItem) {
+    navItem.classList.add(this.options.navItemClass);
+    this.root.appendChild(navItem);
+    return this;
+  }
+
   getItems() {
-    return this.elt.children;
+    return this.root.children;
   }
 
   isActiveItem(item) {
@@ -95,22 +98,17 @@ class SlammerNav {
     item.classList.remove(activeClass);
   }
 
-  addItemClass(item) {
-    let baseClass = this.options.navItemClass
-    item.classList.add(baseClass);
+  setNavItemIndex(elt, i) {
+      if (!elt.dataset) {
+          elt.dataset = {}; // WARNING This is potentially very :poop:
+      }
+      elt.dataset.slammerIndex = i;
+      return this;
   }
-}
 
-
-/*** Helpers - these need a better home. ***/
-function setSlideEltIndex(slideElt, i) {
-    if (!slideElt.dataset) {
-        slideElt.dataset = {}; // This is potentially very :poop:
-    }
-    slideElt.dataset.slammerIndex = i;
-}
-function getSlideEltIndex(slideElt) {
-    return +slideElt.dataset.slammerIndex; // the `+` is to coerce the index an integer. otherwise, it's returned as a string
+  getNavItemIndex(elt) {
+      return +elt.dataset.slammerIndex; // the `+` is to coerce the index an integer. otherwise, it's returned as a string
+  }
 }
 
 module.exports = SlammerNav; 
