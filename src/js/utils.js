@@ -4,8 +4,6 @@ module.exports = {
     mergeClassList: mergeClassList,
     mergeStyles: mergeStyles,
     newDiv: newDiv,
-    setTransform: setTransform,
-    setTransition: setTransition,
     toArray: toArray,
 };
 
@@ -32,22 +30,6 @@ function extend() {
  */
 function getTransformPercentAsNumber(transform) {
   return parseFloat(transform.split('(')[1].split('%')[0]);
-}
-
-/*
- * Sets transform property on given elt
- */
-function setTransform(elt, transform) {
-  elt.style.WebkitTransform = transform;
-  elt.style.transform       = transform;
-}
-
-/*
- * Sets transition property on given elt
- */
-function setTransition(elt, transition) {
-  elt.style.WebkitTransition = transition;
-  elt.style.transition       = transition;
 }
 
 /*

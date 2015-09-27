@@ -17,8 +17,6 @@ const SlammerTriptych = require("./triptych");
 
 const extend         = require('./utils').extend;
 const getTransformPercentAsNumber = require("./utils").getTransformPercentAsNumber;
-const setTransform   = require("./utils").setTransform;
-const setTransition  = require("./utils").setTransition;
 const toArray        = require("./utils").toArray;
 
 const transitionTime = 450;
@@ -44,7 +42,7 @@ class Slammer {
 
     this.nav = null; // Populated by `createNav`
 
-    if (this.slides.length < 2) return;
+    if (this.slides.length < 2) return; // This used to be in the `slam` method
 
     this.triptych = new SlammerTriptych(this.slides);
 
@@ -52,7 +50,6 @@ class Slammer {
     this.wrapper.removeChild(wrapperElt);
     this.wrapper.appendChild(this.triptych.root);
 
-    setTransform(this.triptych.root, "translateX(0%)"); // Move to Triptych class (BB)
 
     this
       .transformTo(-1, 0, -1)
@@ -143,18 +140,20 @@ class Slammer {
     if (time > 0) {
       let transitionClassName = 'slammer-transitioning';
       let transitionProperty = 'transform ' + transitionTime/1000 + 's';
-      this.lock();
-      // this.triptych.root.classList.add('slammer-transitioning');
-      this.triptych.addClass(transitionClassName)
-      setTransition(this.triptych.root, transitionProperty)
+
+      this
+        .lock()
+        .triptych
+          .addClass(transitionClassName)
+          .transition(transitionProperty);
 
       // TODO - call this function when the transition end event fires instead of using setTimeout
       // (although, transitionend event has spotty browser support...)
       window.setTimeout(() => {
-        debugger;
-        this.triptych.removeClass(transitionClassName)
-        // this.triptych.root.classList.remove('slammer-transitioning');
-        setTransition(this.triptych.root, 'transform 0s')
+        
+        this.triptych
+          .removeClass(transitionClassName)
+          .transition('transform 0s');
 
         this
           .injectNewSurroundingSlides(currIndex, nextIndex)
@@ -167,7 +166,7 @@ class Slammer {
       this.curr = 0;
     }
 
-    setTransform(this.triptych.root, "translateX(" + newTransformPos + "%)")
+    this.triptych.transform("translateX(" + newTransformPos + "%)")
     return this;
   }
 
@@ -192,7 +191,7 @@ class Slammer {
     return this;
   }
 
-  // Make sure that index is in our slide range
+  // Makes sure that a given index is in the slide range
   indexify(index) {
     while (index < 0) index += this.slides.length;
     return index % this.slides.length;

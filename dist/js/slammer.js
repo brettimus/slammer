@@ -2615,8 +2615,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
         var extend = require('./utils').extend;
         var getTransformPercentAsNumber = require("./utils").getTransformPercentAsNumber;
-        var setTransform = require("./utils").setTransform;
-        var setTransition = require("./utils").setTransition;
         var toArray = require("./utils").toArray;
 
         var transitionTime = 450;
@@ -2642,15 +2640,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                 this.nav = null; // Populated by `createNav`
 
-                if (this.slides.length < 2) return;
+                if (this.slides.length < 2) return; // This used to be in the `slam` method
 
                 this.triptych = new SlammerTriptych(this.slides);
 
                 this.wrapper = wrapperElt.parentNode;
                 this.wrapper.removeChild(wrapperElt);
                 this.wrapper.appendChild(this.triptych.root);
-
-                setTransform(this.triptych.root, "translateX(0%)"); // Move to Triptych class (BB)
 
                 this.transformTo(-1, 0, -1).acceptHammers().createNav().unlock();
             }
@@ -2747,18 +2743,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         (function () {
                             var transitionClassName = 'slammer-transitioning';
                             var transitionProperty = 'transform ' + transitionTime / 1000 + 's';
-                            _this4.lock();
-                            // this.triptych.root.classList.add('slammer-transitioning');
-                            _this4.triptych.addClass(transitionClassName);
-                            setTransition(_this4.triptych.root, transitionProperty);
+
+                            _this4.lock().triptych.addClass(transitionClassName).transition(transitionProperty);
 
                             // TODO - call this function when the transition end event fires instead of using setTimeout
                             // (although, transitionend event has spotty browser support...)
                             window.setTimeout((function () {
-                                debugger;
-                                _this4.triptych.removeClass(transitionClassName);
-                                // this.triptych.root.classList.remove('slammer-transitioning');
-                                setTransition(_this4.triptych.root, 'transform 0s');
+
+                                _this4.triptych.removeClass(transitionClassName).transition('transform 0s');
 
                                 _this4.injectNewSurroundingSlides(currIndex, nextIndex).unlock();
                             }).bind(_this4), transitionTime);
@@ -2767,7 +2759,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         this.curr = 0;
                     }
 
-                    setTransform(this.triptych.root, "translateX(" + newTransformPos + "%)");
+                    this.triptych.transform("translateX(" + newTransformPos + "%)");
                     return this;
                 }
             }, {
@@ -2795,7 +2787,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     return this;
                 }
 
-                // Make sure that index is in our slide range
+                // Makes sure that a given index is in the slide range
             }, {
                 key: "indexify",
                 value: function indexify(index) {
@@ -2846,8 +2838,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                 _classCallCheck(this, SlammerTriptych);
 
-                this.root = newDiv(); // More expressive name?
-                this.root.classList.add('slam-items');
+                this.setRoot('slam-items').transform("translateX(0%)");
 
                 this.prevSlide = newDiv();
                 this.currSlide = newDiv();
@@ -2869,6 +2860,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }
 
             _createClass(SlammerTriptych, [{
+                key: "setRoot",
+                value: function setRoot(className) {
+                    this.root = newDiv();
+                    this.root.classList.add(className);
+                    return this;
+                }
+            }, {
                 key: "addClass",
                 value: function addClass(className) {
                     this.root.classList.add(className);
@@ -2878,6 +2876,22 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 key: "removeClass",
                 value: function removeClass(className) {
                     this.root.classList.remove(className);
+                    return this;
+                }
+            }, {
+                key: "transform",
+                value: function transform(value) {
+                    if (!arguments.length) return this.root.style.transform;
+                    this.root.style.WebkitTransform = value;
+                    this.root.style.transform = value;
+                    return this;
+                }
+            }, {
+                key: "transition",
+                value: function transition(value) {
+                    if (!arguments.length) return this.root.style.transition;
+                    this.root.style.WebkitTransition = value;
+                    this.root.style.transition = value;
                     return this;
                 }
             }]);
@@ -2893,8 +2907,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             mergeClassList: mergeClassList,
             mergeStyles: mergeStyles,
             newDiv: newDiv,
-            setTransform: setTransform,
-            setTransition: setTransition,
             toArray: toArray
         };
 
@@ -2921,22 +2933,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
          */
         function getTransformPercentAsNumber(transform) {
             return parseFloat(transform.split('(')[1].split('%')[0]);
-        }
-
-        /*
-         * Sets transform property on given elt
-         */
-        function setTransform(elt, transform) {
-            elt.style.WebkitTransform = transform;
-            elt.style.transform = transform;
-        }
-
-        /*
-         * Sets transition property on given elt
-         */
-        function setTransition(elt, transition) {
-            elt.style.WebkitTransition = transition;
-            elt.style.transition = transition;
         }
 
         /*

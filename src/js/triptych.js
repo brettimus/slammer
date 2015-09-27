@@ -8,8 +8,9 @@ const newDiv         = require("./utils").newDiv;
 class SlammerTriptych {
   constructor(baseSlides) {
 
-    this.root = newDiv(); // More expressive name?
-    this.root.classList.add('slam-items');
+    this
+      .setRoot('slam-items')
+      .transform("translateX(0%)");
 
     this.prevSlide = newDiv();
     this.currSlide = newDiv();
@@ -30,6 +31,12 @@ class SlammerTriptych {
     });
   }
 
+  setRoot(className) {
+    this.root = newDiv()
+    this.root.classList.add(className);
+    return this;
+  }
+
   addClass(className) {
     this.root.classList.add(className)
     return this;
@@ -37,6 +44,20 @@ class SlammerTriptych {
 
   removeClass(className) {
     this.root.classList.remove(className)
+    return this;
+  }
+
+  transform(value) {
+    if (!arguments.length) return this.root.style.transform;
+    this.root.style.WebkitTransform = value;
+    this.root.style.transform       = value;
+    return this;
+  }
+
+  transition(value) {
+    if (!arguments.length) return this.root.style.transition;
+    this.root.style.WebkitTransition = value;
+    this.root.style.transition       = value;
     return this;
   }
 
