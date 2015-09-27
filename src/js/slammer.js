@@ -24,6 +24,7 @@ class Slammer {
 
     let defaults = {
       transitionTime: 450,
+      transitionClassName: 'slammer-transitioning',
     };
     
     this.options = extend({}, defaults, options);
@@ -38,7 +39,6 @@ class Slammer {
       .nextIndex(1)
       .setTriptych(new SlammerTriptych(this.slides, this.options))
       .setWrapper(wrapperElt)
-      .transformTo(-1, 0, -1) // The third argument is time. It being negative signifies something. 
       .acceptHammers(new Hammer(this.triptych.root))
       .createNav(new SlammerNav(this, this.options))
       .unlock();
@@ -47,6 +47,7 @@ class Slammer {
 
   setTriptych(value) {
     this.triptych = value;
+    this.triptych.holdSteady();
     return this;
   }
 
@@ -64,6 +65,11 @@ class Slammer {
     return this;
   }
 
+  updateNav() {
+    this.nav.update(this.currentIndex());
+    return this;
+  }
+
   relativeTransition(offset) {
     if (offset === 0) return;
 
@@ -72,6 +78,7 @@ class Slammer {
   }
 
   specialTransition(newIndex) {
+    
     // 1. inject contents of newIndex into Next slide
     let newContents = this.getSlideHTML(newIndex);
     if (newIndex < this.curr) {
@@ -83,94 +90,43 @@ class Slammer {
 
     // 2. transformTo(nextIndex)
     window.setTimeout(() => {
-      this.transformTo(this.curr, newIndex, this.options.transitionTime);
+      this.transformTo(newIndex, this.options.transitionTime);
     }, 10);
   }
 
   retreat() {
-    let newIndex = this.curr - 1;
-    this.transformTo(this.curr, newIndex, this.options.transitionTime);
+    this.transformTo(this.currentIndex() - 1);
   }
 
   advance() {
-    let newIndex = this.curr + 1;
-    this.transformTo(this.curr, newIndex, this.options.transitionTime);
+    this.transformTo(this.currentIndex() + 1);
   }
 
-  // TODO - move a variant of this to triptych
-  injectNewSurroundingSlides(currIndex, newIndex) {
+  transformTo(nextIndex) {
 
-    // Update current index
-    // Update current, next, and prev slides
-    this
-      .currentIndex(newIndex)
-      .triptych
-        .current(this.getSlideHTML(newIndex))
-        .next(this.getSlideHTML(newIndex + 1))
-        .prev(this.getSlideHTML(newIndex - 1));
+    let offset = nextIndex - this.currentIndex();
+    if (offset === 0) return;
 
-    // Apply transforms to slides
-    this
-      .transformTo(newIndex, 0, 0) // This method really should be on the triptych... and it should probably take a callback (for the locking, unlocking thing)
-      .nav
-        .update(this.currentIndex());
+    let direction = offset > 0 ? -1 : 1;
 
-    return this;
-  }
+    let html = {
+      prev: this.getSlideHTML(nextIndex - 1),
+      curr: this.getSlideHTML(nextIndex),
+      next: this.getSlideHTML(nextIndex + 1),
+    };
 
-  transformTo(currIndex, nextIndex, time) {
-
-    let currTransformContent =  this.triptych.translateXPercent();
-
-    let offset = nextIndex - currIndex;
-    let isCurrentItemLast = (currIndex === this.slides.length - 1);
-
-    let transitionTime = this.options.transitionTime;
-
-    if (nextIndex === -1) debugger; /* ?? What causes this case ?? I couldn't trigger it. (BB) */
-
-    let newTransformPos;
-    if (time <= 0) { // What is this case for? It seems to have a special meaning
-      newTransformPos = (1/3) * -100;
-    }
-    else if (offset > 0 || isCurrentItemLast && nextIndex === -1) {
-      newTransformPos = currTransformContent + (1/3) * -100;
-    }
-    else {
-      newTransformPos = currTransformContent + (1/3) * 100;
-    }
-
-    if (time > 0) {
-
-      let transitionClassName = 'slammer-transitioning';
-      let transitionProperty = 'transform ' + transitionTime/1000 + 's';
-
+    let callback = function() {
       this
-        .lock()
-        .triptych
-          .addClass(transitionClassName)
-          .transition(transitionProperty);
+        .unlock()
+        .currentIndex(nextIndex)
+        .updateNav();
+    };
 
-      // TODO - call this function when the transition end event fires instead of using setTimeout
-      // (although, transitionend event has spotty browser support...)
-      window.setTimeout(() => {
+    this
+      .lock()
+      .triptych
+        .slide(direction, html, callback.bind(this));
 
-        this.triptych
-          .removeClass(transitionClassName)
-          .transition('transform 0s');
-
-        this
-          .injectNewSurroundingSlides(currIndex, nextIndex)
-          .unlock();
-
-      }.bind(this), transitionTime);
-
-    } 
-    else if (time < 0){ // ?? When is this case reached?
-      this.curr = 0;
-    }
-
-    this.triptych.translateXPercent(newTransformPos)
     return this;
   }
 

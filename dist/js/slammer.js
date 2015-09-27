@@ -2626,7 +2626,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 _classCallCheck(this, Slammer);
 
                 var defaults = {
-                    transitionTime: 450
+                    transitionTime: 450,
+                    transitionClassName: 'slammer-transitioning'
                 };
 
                 this.options = extend({}, defaults, options);
@@ -2635,14 +2636,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 if (this.slides.length < 2) return; // This used to be in the `slam` method. Could probably remove or modify.
 
                 this.lock() // * The lock helps to short circuit event handlers if a transition is in progress.
-                .currIndex(0).prevIndex(-1).nextIndex(1).setTriptych(new SlammerTriptych(this.slides, this.options)).setWrapper(wrapperElt).transformTo(-1, 0, -1) // The third argument is time. It being negative signifies something.
-                .acceptHammers(new Hammer(this.triptych.root)).createNav(new SlammerNav(this, this.options)).unlock();
+                .currIndex(0).prevIndex(-1).nextIndex(1).setTriptych(new SlammerTriptych(this.slides, this.options)).setWrapper(wrapperElt).acceptHammers(new Hammer(this.triptych.root)).createNav(new SlammerNav(this, this.options)).unlock();
             }
 
             _createClass(Slammer, [{
                 key: "setTriptych",
                 value: function setTriptych(value) {
                     this.triptych = value;
+                    this.triptych.holdSteady();
                     return this;
                 }
 
@@ -2660,6 +2661,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 key: "createNav",
                 value: function createNav(value) {
                     this.nav = value;
+                    return this;
+                }
+            }, {
+                key: "updateNav",
+                value: function updateNav() {
+                    this.nav.update(this.currentIndex());
                     return this;
                 }
             }, {
@@ -2685,100 +2692,56 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     // 2. transformTo(nextIndex)
                     window.setTimeout(function () {
-                        _this3.transformTo(_this3.curr, newIndex, _this3.options.transitionTime);
+                        _this3.transformTo(newIndex, _this3.options.transitionTime);
                     }, 10);
                 }
             }, {
                 key: "retreat",
                 value: function retreat() {
-                    var newIndex = this.curr - 1;
-                    this.transformTo(this.curr, newIndex, this.options.transitionTime);
+                    this.transformTo(this.currentIndex() - 1);
                 }
             }, {
                 key: "advance",
                 value: function advance() {
-                    var newIndex = this.curr + 1;
-                    this.transformTo(this.curr, newIndex, this.options.transitionTime);
-                }
-
-                // TODO - move a variant of this to triptych
-            }, {
-                key: "injectNewSurroundingSlides",
-                value: function injectNewSurroundingSlides(currIndex, newIndex) {
-
-                    // Update current index
-                    // Update current, next, and prev slides
-                    this.currentIndex(newIndex).triptych.current(this.getSlideHTML(newIndex)).next(this.getSlideHTML(newIndex + 1)).prev(this.getSlideHTML(newIndex - 1));
-
-                    // Apply transforms to slides
-                    this.transformTo(newIndex, 0, 0) // This method really should be on the triptych... and it should probably take a callback (for the locking, unlocking thing)
-                    .nav.update(this.currentIndex());
-
-                    return this;
+                    this.transformTo(this.currentIndex() + 1);
                 }
             }, {
                 key: "transformTo",
-                value: function transformTo(currIndex, nextIndex, time) {
-                    var _this4 = this;
+                value: function transformTo(nextIndex) {
 
-                    var currTransformContent = this.triptych.translateXPercent();
+                    var offset = nextIndex - this.currentIndex();
+                    if (offset === 0) return;
 
-                    var offset = nextIndex - currIndex;
-                    var isCurrentItemLast = currIndex === this.slides.length - 1;
+                    var direction = offset > 0 ? -1 : 1;
 
-                    var transitionTime = this.options.transitionTime;
+                    var html = {
+                        prev: this.getSlideHTML(nextIndex - 1),
+                        curr: this.getSlideHTML(nextIndex),
+                        next: this.getSlideHTML(nextIndex + 1)
+                    };
 
-                    if (nextIndex === -1) debugger; /* ?? What causes this case ?? I couldn't trigger it. (BB) */
+                    var callback = function callback() {
+                        this.unlock().currentIndex(nextIndex).updateNav();
+                    };
 
-                    var newTransformPos = undefined;
-                    if (time <= 0) {
-                        // What is this case for? It seems to have a special meaning
-                        newTransformPos = 1 / 3 * -100;
-                    } else if (offset > 0 || isCurrentItemLast && nextIndex === -1) {
-                        newTransformPos = currTransformContent + 1 / 3 * -100;
-                    } else {
-                        newTransformPos = currTransformContent + 1 / 3 * 100;
-                    }
+                    this.lock().triptych.slide(direction, html, callback.bind(this));
 
-                    if (time > 0) {
-                        (function () {
-
-                            var transitionClassName = 'slammer-transitioning';
-                            var transitionProperty = 'transform ' + transitionTime / 1000 + 's';
-
-                            _this4.lock().triptych.addClass(transitionClassName).transition(transitionProperty);
-
-                            // TODO - call this function when the transition end event fires instead of using setTimeout
-                            // (although, transitionend event has spotty browser support...)
-                            window.setTimeout((function () {
-
-                                _this4.triptych.removeClass(transitionClassName).transition('transform 0s');
-
-                                _this4.injectNewSurroundingSlides(currIndex, nextIndex).unlock();
-                            }).bind(_this4), transitionTime);
-                        })();
-                    } else if (time < 0) {
-                        // ?? When is this case reached?
-                        this.curr = 0;
-                    }
-
-                    this.triptych.translateXPercent(newTransformPos);
                     return this;
                 }
             }, {
                 key: "acceptHammers",
                 value: function acceptHammers(hammer) {
-                    var _this5 = this;
+                    var _this4 = this;
 
                     hammer.on('swipe', function (e) {
-                        if (_this5.isLocked()) return;
-                        if (e.direction === 2) _this5.advance();
-                        if (e.direction === 4) _this5.retreat();
+                        if (_this4.isLocked()) return;
+                        if (e.direction === 2) _this4.advance();
+                        if (e.direction === 4) _this4.retreat();
                     });
 
                     hammer.on('tap', function (e) {
-                        if (_this5.isLocked()) return;
-                        _this5.advance();
+                        if (_this4.isLocked()) return;
+                        _this4.advance();
                     });
 
                     return this;
@@ -2857,10 +2820,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         var newDiv = require("./utils").newDiv;
 
         var SlammerTriptych = (function () {
-            function SlammerTriptych(baseSlides) {
-                var _this6 = this;
+            function SlammerTriptych(baseSlides, options) {
+                var _this5 = this;
 
                 _classCallCheck(this, SlammerTriptych);
+
+                this.transitionClassName = options.transitionClassName;
+                this.transitionTime = options.transitionTime;
 
                 this.setRoot('slam-items').transform("translateX(0%)");
 
@@ -2868,13 +2834,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 this.currSlide = newDiv();
                 this.nextSlide = newDiv();
 
-                var slides = [this.prevSlide, this.currSlide, this.nextSlide];
-                slides.forEach(function (slide, i) {
+                this.slides().forEach(function (slide, i) {
 
-                    _this6.root.appendChild(slide);
+                    _this5.root.appendChild(slide);
 
                     var origSlideIndex = i - 1 >= 0 ? i - 1 : baseSlides.length - 1; // why?
-
                     var origSlide = baseSlides[origSlideIndex];
 
                     slide.innerHTML = origSlide.innerHTML;
@@ -2884,6 +2848,69 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }
 
             _createClass(SlammerTriptych, [{
+                key: "slides",
+                value: function slides() {
+                    return [this.prevSlide, this.currSlide, this.nextSlide];
+                }
+            }, {
+                key: "holdSteady",
+                value: function holdSteady() {
+                    var newTransformPos = 1 / 3 * -100;
+                    this.translateXPercent(newTransformPos);
+                    return this;
+                }
+            }, {
+                key: "slide",
+                value: function slide(direction, html, callback) {
+                    var _this6 = this;
+
+                    var translation = this.translateXPercent() + direction * (1 / 3) * 100;
+                    this.addClass(this.transitionClassName).transition('transform ' + this.transitionTime / 1000 + 's').translateXPercent(translation);
+
+                    window.setTimeout(function () {
+                        _this6.removeClass(_this6.transitionClassName).transition('transform 0s').injectHTML(html).holdSteady();
+
+                        if (callback) callback();
+                    }, this.transitionTime);
+                    return this;
+                }
+            }, {
+                key: "advance",
+                value: function advance(triptychHTML, next) {
+                    var _this7 = this;
+
+                    this.addClass(this.transitionClassName).transition('transform ' + this.transitionTime / 1000 + 's').translateXPercent(this.translateXPercent() + 1 / 3 * -100);
+
+                    window.setTimeout(function () {
+                        _this7.removeClass(_this7.transitionClassName).transition('transform 0s').injectHTML(triptychHTML).holdSteady();
+
+                        if (next) next();
+                    }, this.transitionTime);
+                    return this;
+                }
+            }, {
+                key: "retreat",
+                value: function retreat(triptychHTML, next) {
+                    var _this8 = this;
+
+                    this.addClass(this.transitionClassName).transition('transform ' + this.transitionTime / 1000 + 's').translateXPercent(this.translateXPercent() + 1 / 3 * 100);
+
+                    window.setTimeout(function () {
+                        _this8.removeClass(_this8.transitionClassName).transition('transform 0s').injectHTML(triptychHTML).holdSteady();
+
+                        if (next) next();
+                    }, this.transitionTime);
+
+                    return this;
+                }
+            }, {
+                key: "injectHTML",
+                value: function injectHTML(vals) {
+                    this.current(vals.curr).next(vals.next).prev(vals.prev);
+
+                    return this;
+                }
+            }, {
                 key: "current",
                 value: function current(html) {
                     if (!arguments.length) return this.currSlide.innerHTML;
@@ -2932,14 +2959,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     return this;
                 }
             }, {
-                key: "transition",
-                value: function transition(value) {
-                    if (!arguments.length) return this.root.style.transition;
-                    this.root.style.WebkitTransition = value;
-                    this.root.style.transition = value;
-                    return this;
-                }
-            }, {
                 key: "translateXPercent",
                 value: function translateXPercent(value) {
                     // Extracts translation percentage
@@ -2947,6 +2966,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         return parseFloat(this.transform().split('(')[1].split('%')[0]);
                     }
                     return this.transform("translateX(" + value + "%)");
+                }
+            }, {
+                key: "transition",
+                value: function transition(value) {
+                    if (!arguments.length) return this.root.style.transition;
+                    this.root.style.WebkitTransition = value;
+                    this.root.style.transition = value;
+                    return this;
                 }
             }]);
 
