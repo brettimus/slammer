@@ -61,46 +61,6 @@ class SlammerTriptych {
     return this;
   }
 
-  advance(triptychHTML, next) {
-
-    this
-      .addClass(this.transitionClassName)
-      .transition('transform ' + this.transitionTime/1000 + 's')
-      .translateXPercent(this.translateXPercent() + (1/3) * -100);
-
-    window.setTimeout(() => {
-      this
-        .removeClass(this.transitionClassName)
-        .transition('transform 0s')
-        .injectHTML(triptychHTML)
-        .holdSteady();
-
-      if (next) next();
-    }, this.transitionTime);
-    return this;
-  }
-
-  retreat(triptychHTML, next) {
-
-    this
-      .addClass(this.transitionClassName)
-      .transition('transform ' + this.transitionTime/1000 + 's')
-      .translateXPercent(this.translateXPercent() + (1/3) * 100);
-
-      window.setTimeout(() => {
-        this
-          .removeClass(this.transitionClassName)
-          .transition('transform 0s')
-          .injectHTML(triptychHTML)
-          .holdSteady();
-
-        if (next) next();
-
-      }, this.transitionTime);
-
-    return this;
-  }
-
   injectHTML(vals) {
     this
       .current(vals.curr)

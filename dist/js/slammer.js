@@ -2875,35 +2875,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     return this;
                 }
             }, {
-                key: "advance",
-                value: function advance(triptychHTML, next) {
-                    var _this7 = this;
-
-                    this.addClass(this.transitionClassName).transition('transform ' + this.transitionTime / 1000 + 's').translateXPercent(this.translateXPercent() + 1 / 3 * -100);
-
-                    window.setTimeout(function () {
-                        _this7.removeClass(_this7.transitionClassName).transition('transform 0s').injectHTML(triptychHTML).holdSteady();
-
-                        if (next) next();
-                    }, this.transitionTime);
-                    return this;
-                }
-            }, {
-                key: "retreat",
-                value: function retreat(triptychHTML, next) {
-                    var _this8 = this;
-
-                    this.addClass(this.transitionClassName).transition('transform ' + this.transitionTime / 1000 + 's').translateXPercent(this.translateXPercent() + 1 / 3 * 100);
-
-                    window.setTimeout(function () {
-                        _this8.removeClass(_this8.transitionClassName).transition('transform 0s').injectHTML(triptychHTML).holdSteady();
-
-                        if (next) next();
-                    }, this.transitionTime);
-
-                    return this;
-                }
-            }, {
                 key: "injectHTML",
                 value: function injectHTML(vals) {
                     this.current(vals.curr).next(vals.next).prev(vals.prev);
