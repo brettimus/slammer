@@ -88,17 +88,12 @@ class Slammer {
 
 
   /*** transition related ***/
-  relativeTransition(offset) {
-    if (offset === 0) return;
-    return this.transformTo(this.currentIndex() + offset);
-  }
-
   retreat() {
-    return this.relativeTransition(-1);
+    return this.transformTo(this.currentIndex() - 1);
   }
 
   advance() {
-    return this.relativeTransition(1);
+    return this.transformTo(this.currentIndex() + 1);
   }
 
   transformTo(nextIndex) {
